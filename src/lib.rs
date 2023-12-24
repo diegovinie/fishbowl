@@ -19,3 +19,11 @@ pub mod db {
             .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
     }
 }
+
+pub mod models {
+    use salvo::http::form::FormData;
+    
+    pub trait Updatable {
+        fn merge(&self, form_data: &FormData) -> Self;
+    }
+}

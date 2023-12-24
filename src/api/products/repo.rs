@@ -30,6 +30,14 @@ pub fn insert_product(new_product: NewProduct) -> Result<Product, Error> {
         .get_result(conn)
 }
 
+pub fn update_product(product: &Product) -> Result<Product, Error> {
+    let conn = &mut db::establish_connection();
+
+    diesel::update(products_table.find(product.id))
+        .set(product)
+        .get_result(conn)
+}
+
 pub fn delete_product(id: i32) -> Result<usize, Error> {
     let conn = &mut db::establish_connection();
 

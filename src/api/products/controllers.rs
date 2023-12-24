@@ -1,6 +1,7 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
 use crate::api::utils;
+use crate::models::Updatable;
 use super::models::NewProduct;
 use super::repo;
 
@@ -58,14 +59,23 @@ pub fn remove_product(req: &mut Request, _depot: &mut Depot, res: &mut Response)
 }
 
 #[handler]
-pub fn update_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+pub async fn update_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
     let id: i32 = utils::get_req_param(req, "id")
         .unwrap_or_default();
 
+    let form_data = req.form_data()
+        .await
+        .expect("Error getting the form data");
+    
     let product = repo::find_product(id)
         .expect("Product not found");
 
-    res.render(Json(product))
+    let product_updated = product.merge(form_data);
+
+    repo::update_product(&product_updated)
+        .expect("Error updating");
+
+    res.render(Json(product_updated))
 }
 
 fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, Error> {
