@@ -1,5 +1,6 @@
 use diesel::prelude::*;
 use serde::Serialize;
+use crate::schema::products;
 
 #[derive(Serialize, Debug)]
 #[derive(Queryable, Selectable)]
@@ -12,8 +13,6 @@ pub struct Product {
     pub price: f32,
     pub available: bool,
 }
-
-use crate::schema::products;
 
 #[derive(Debug)]
 #[derive(Insertable)]

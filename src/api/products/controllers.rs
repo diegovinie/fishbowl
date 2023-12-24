@@ -1,11 +1,11 @@
-use fishbowl::models::NewProduct;
-use salvo::http::form::FormData;
 use salvo::prelude::*;
 use diesel::prelude::*;
+use salvo::http::form::FormData;
 use crate::db;
-use crate::models::Product;
 use crate::schema::products::table as products_table;
-use super::utils;
+use crate::api::utils;
+use super::models::{Product, NewProduct};
+use super::repo;
 
 #[derive(Debug)]
 enum Error<'a> {
@@ -44,7 +44,7 @@ pub async fn add_product(req: &mut Request, _depot: &mut Depot, res: &mut Respon
         .get_result(conn)
         .expect("Error saving Product");
 
-    res.render(format!("add product: {:?}", product));
+    res.render(Json(product))
 }
 
 #[handler]
@@ -52,36 +52,35 @@ pub fn show_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
     let id: i32 = utils::get_req_param(req, "id")
         .unwrap_or_default();
 
-    let connection = &mut db::establish_connection();
-
-    let product = products_table
-        .find(id)
-        .select(Product::as_select())
-        .first(connection)
+    let product = repo::find_product(id)
         .expect("Product not found");
 
     res.render(Json(product))
 }
 
 #[handler]
-pub fn remove_product() {
+pub fn remove_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+    let id: i32 = utils::get_req_param(req, "id")
+    .unwrap_or_default();
+    
+    let conn = &mut db::establish_connection();
 
+    let total_deleted = diesel::delete(products_table.find(id))
+        .execute(conn)
+        .expect("Failed deleting");
+    
+    res.render(format!("Total deleted: {}", total_deleted))
 }
 
 #[handler]
-pub fn update_product() {
+pub fn update_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+    let id: i32 = utils::get_req_param(req, "id")
+        .unwrap_or_default();
 
-}
+    let product = repo::find_product(id)
+        .expect("Product not found");
 
-pub fn get_router() -> Router {
-    Router::with_path("products")
-        .get(list_products)
-        .post(add_product)
-        .push(Router::with_path("<id>")
-            .get(show_product)
-            .delete(remove_product)
-            .put(update_product)
-        )     
+    res.render(Json(product))
 }
 
 fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, Error> {

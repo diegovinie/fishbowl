@@ -1,9 +1,5 @@
 use salvo::prelude::*;
-mod controllers;
-use controllers::products;
-use fishbowl::*;
-use self::models;
-
+use fishbowl::api::products;
 
 #[handler]
 async fn hello(_req: &mut Request, _depot: &mut Depot, res: &mut Response) {
