@@ -9,3 +9,6 @@ salvo = "0.59"
 tokio = { version = "1", features = ["macros"] }
 tracing = "0.1"
 tracing-subscriber = "0.3"
+diesel = { version = "2.1.0", features = ["postgres"] }
+dotenvy = "0.15"
+serde = "*"
