@@ -36,7 +36,15 @@ pub async fn add_product(req: &mut Request, _depot: &mut Depot, res: &mut Respon
     let new_product = cast_form_data_to_new_product(form_data)
         .expect("ups");
 
-    res.render(format!("add product: {:?}", new_product));
+    let conn = &mut db::establish_connection();
+
+    let product = diesel::insert_into(products_table)
+        .values(&new_product)
+        .returning(Product::as_returning())
+        .get_result(conn)
+        .expect("Error saving Product");
+
+    res.render(format!("add product: {:?}", product));
 }
 
 #[handler]
