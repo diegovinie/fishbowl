@@ -1,10 +1,7 @@
 use salvo::prelude::*;
-use diesel::prelude::*;
 use salvo::http::form::FormData;
-use crate::db;
-use crate::schema::products::table as products_table;
 use crate::api::utils;
-use super::models::{Product, NewProduct};
+use super::models::NewProduct;
 use super::repo;
 
 #[derive(Debug)]
@@ -15,11 +12,7 @@ enum Error<'a> {
     
 #[handler]
 pub fn list_products(_req: &mut Request, _depot: &mut Depot, res: &mut Response) {
-    let connection = &mut db::establish_connection();
-    
-    let products = products_table
-        .select(Product::as_select())
-        .load(connection)
+    let products = repo::list_products()
         .expect("Error loading products");
 
     res.render(Json(products))
@@ -36,13 +29,8 @@ pub async fn add_product(req: &mut Request, _depot: &mut Depot, res: &mut Respon
     let new_product = cast_form_data_to_new_product(form_data)
         .expect("ups");
 
-    let conn = &mut db::establish_connection();
-
-    let product = diesel::insert_into(products_table)
-        .values(&new_product)
-        .returning(Product::as_returning())
-        .get_result(conn)
-        .expect("Error saving Product");
+    let product = repo::insert_product(new_product)
+        .expect("Error inserting product");
 
     res.render(Json(product))
 }
@@ -61,14 +49,11 @@ pub fn show_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
 #[handler]
 pub fn remove_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
     let id: i32 = utils::get_req_param(req, "id")
-    .unwrap_or_default();
+        .unwrap_or_default();
     
-    let conn = &mut db::establish_connection();
-
-    let total_deleted = diesel::delete(products_table.find(id))
-        .execute(conn)
+    let total_deleted = repo::delete_product(id)
         .expect("Failed deleting");
-    
+
     res.render(format!("Total deleted: {}", total_deleted))
 }
 
