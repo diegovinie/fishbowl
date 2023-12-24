@@ -15,6 +15,7 @@ pub struct Product {
 
 use crate::schema::products;
 
+#[derive(Debug)]
 #[derive(Insertable)]
 #[diesel(table_name = products)]
 pub struct NewProduct<'a> {
