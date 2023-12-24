@@ -3,6 +3,7 @@ use diesel::prelude::*;
 use crate::db;
 use crate::models::Product;
 use crate::schema::products::table as products_table;
+use super::utils;
     
 #[handler]
 pub fn list_products(_req: &mut Request, _depot: &mut Depot, res: &mut Response) {
@@ -23,8 +24,19 @@ pub fn add_product() {
 }
 
 #[handler]
-pub fn show_product() {
+pub fn show_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+    let id: i32 = utils::get_req_param(req, "id")
+        .unwrap_or_default();
 
+    let connection = &mut db::establish_connection();
+
+    let product = products_table
+        .find(id)
+        .select(Product::as_select())
+        .first(connection)
+        .expect("Product not found");
+
+    res.render(Json(product))
 }
 
 #[handler]
