@@ -1,5 +1,5 @@
 use salvo::prelude::*;
-use fishbowl::api::products;
+use fishbowl::api::{auth, products};
 use dotenvy::dotenv;
 use std::env;
 
@@ -17,7 +17,10 @@ async fn main() {
 
     tracing_subscriber::fmt().init();
 
-    let router = Router::new().get(hello)
+    let router = Router::new()
+        .hoop(auth::decode_token())
+        .get(hello)
+        .push(Router::with_path("auth").goal(auth::get_auth))
         .push(products::get_router());
 
     let acceptor = TcpListener::new(format!("{domain}:{port}")).bind().await;
