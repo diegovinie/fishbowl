@@ -20,6 +20,12 @@ async fn main() {
     let router = Router::new()
         .hoop(auth::decode_token())
         .get(hello)
+        .push(Router::with_path("files/<**path>").get(
+            StaticDir::new([
+                env::current_dir().unwrap().join("static")
+                ])
+            .auto_list(true)
+        ))
         .push(Router::with_path("auth").post(auth::authenticate))
         .push(products::get_router())
         .push(wishlists::get_router());
