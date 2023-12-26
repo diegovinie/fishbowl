@@ -1,6 +1,12 @@
 pub mod auth;
 pub mod products;
 
+#[derive(Debug)]
+pub enum Error<'a> {
+    FieldNotFound(&'a str),
+    ParseFloatErr(&'a str),
+}
+
 pub mod utils {
     use salvo::prelude::*;
     use std::str::FromStr;

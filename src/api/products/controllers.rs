@@ -1,15 +1,9 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
-use crate::api::utils;
+use crate::api::{utils, Error};
 use crate::models::Updatable;
 use super::models::NewProduct;
 use super::repo;
-
-#[derive(Debug)]
-enum Error<'a> {
-    FieldNotFound(&'a str),
-    ParseFloatErr(&'a str),
-}
     
 #[handler]
 pub fn list_products(_req: &mut Request, _depot: &mut Depot, res: &mut Response) {

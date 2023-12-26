@@ -20,7 +20,7 @@ async fn main() {
     let router = Router::new()
         .hoop(auth::decode_token())
         .get(hello)
-        .push(Router::with_path("auth").goal(auth::get_auth))
+        .push(Router::with_path("auth").post(auth::authenticate))
         .push(products::get_router());
 
     let acceptor = TcpListener::new(format!("{domain}:{port}")).bind().await;
