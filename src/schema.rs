@@ -20,7 +20,21 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    wishlists (id) {
+        id -> Int4,
+        title -> Varchar,
+        description -> Nullable<Varchar>,
+        date -> Nullable<Timestamp>,
+        user_id -> Int4,
+        published -> Bool,
+    }
+}
+
+diesel::joinable!(wishlists -> users (user_id));
+
 diesel::allow_tables_to_appear_in_same_query!(
     products,
     users,
+    wishlists,
 );

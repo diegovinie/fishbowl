@@ -13,7 +13,8 @@ const SECRET_KEY: &str = "YOUR SECRET_KEY";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JwtClaims {
-    username: String,
+    pub username: String,
+    pub id: i32,
     exp: i64,
 }
 
@@ -39,11 +40,11 @@ pub async fn authenticate(req: &mut Request, _depot: &mut Depot, res: &mut Respo
                 res.render(format!("Error parsing the form data fields: {error:?}"));    
             },
             Ok((email_candidate, password_candidate)) => match repo::validate(email_candidate, password_candidate) {
-                false => {
+                None => {
                     res.status_code(StatusCode::NOT_ACCEPTABLE);
                     res.render("Authentication failed");
                 },
-                true => match create_token(email_candidate.to_string()) {
+                Some(user) => match create_token(user.email, user.id) {
                     Err(error) => {
                         res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
                         res.render(format!("Error creating token: {error:?}")); 
@@ -82,11 +83,12 @@ fn cast_login_form_data(form_data: &FormData) -> Result<(&str, &str), Error> {
 
 }
 
-fn create_token(username: String) -> Result<String, jsonwebtoken::errors::Error> {
-    let exp = OffsetDateTime::now_utc() + Duration::minutes(1);
+fn create_token(username: String, id: i32) -> Result<String, jsonwebtoken::errors::Error> {
+    let exp = OffsetDateTime::now_utc() + Duration::hours(1);
 
     let claims = JwtClaims {
         username,
+        id,
         exp: exp.unix_timestamp(),
     };
 
