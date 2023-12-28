@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod products;
 pub mod wishlists;
+pub mod errors;
 
 #[derive(Debug)]
 pub enum Error<'a> {

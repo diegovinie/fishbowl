@@ -22,6 +22,15 @@ diesel::table! {
 }
 
 diesel::table! {
+    wishes (id) {
+        id -> Int4,
+        pending -> Bool,
+        wishlist_id -> Int4,
+        product_id -> Int4,
+    }
+}
+
+diesel::table! {
     wishlists (id) {
         id -> Int4,
         title -> Varchar,
@@ -32,10 +41,13 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(wishes -> products (product_id));
+diesel::joinable!(wishes -> wishlists (wishlist_id));
 diesel::joinable!(wishlists -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     products,
     users,
+    wishes,
     wishlists,
 );
