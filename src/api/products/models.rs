@@ -12,6 +12,7 @@ pub struct Product {
     pub id: i32,
     pub name: String,
     pub description: String,
+    pub url: Option<String>,
     pub price: f32,
     pub available: bool,
 }
@@ -36,12 +37,13 @@ impl Updatable for Product {
             description: form_data.fields.get("description")
                 .unwrap_or(&self.description)
                 .to_string(),
+            url: form_data.fields.get("url")
+                .map(|u| u.to_string()),
             price: form_data.fields.get("price")
                 .unwrap_or(&"".to_string())
                 .to_owned()
                 .parse()
                 .unwrap_or(self.price),
-
             available: self.available,
         }
     }

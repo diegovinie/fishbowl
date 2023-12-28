@@ -5,6 +5,3 @@ CREATE TABLE users (
   password TEXT NOT NULL,
   active BOOLEAN NOT NULL DEFAULT FALSE
 );
-
-INSERT INTO users (name, email, password)
-    VALUES ('Claudia', 'claudia@dummy.test', 'password');
