@@ -1,36 +1,32 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
-use crate::api::{utils, Error};
+use crate::api::{utils, errors as api_errors};
 use crate::models::Updatable;
 use super::models::NewProduct;
 use super::repo;
-    
+
 #[handler]
 pub fn list_products(_req: &mut Request, _depot: &mut Depot, res: &mut Response) {
-    let products = repo::list_products()
-        .expect("Error loading products");
+    match repo::list_products() {
+        Err(error) => api_errors::render_db_retrieving_error(res, error, "products"),
 
-    res.render(Json(products))
-
+        Ok(products) => {
+            res.render(Json(products));
+        }
+    }
 }
 
 #[handler]
 pub async fn add_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
     match req.form_data().await {
-        Err(error) => {
-            res.status_code(StatusCode::BAD_REQUEST);
-            res.render(format!("Error getting the form data: {error}"));
-        },
+        Err(error) => api_errors::render_form_data_error(res, error),
+
         Ok(form_data) => match cast_form_data_to_new_product(form_data) {
-            Err(error) => {
-                res.status_code(StatusCode::BAD_REQUEST);
-                res.render(format!("Error parsing the form data fields: {error:?}"));
-            },
+            Err(error) => api_errors::render_cast_error(res, error),
+
             Ok(new_product) => match repo::insert_product(new_product) {
-                Err(error) => {
-                    res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-                    res.render(format!("Error inserting product: {error}"));
-                },
+                Err(error) => api_errors::render_db_insert_error(res, error, "product"),
+
                 Ok(product) => {
                     res.render(Json(product));
                 }
@@ -42,14 +38,11 @@ pub async fn add_product(req: &mut Request, _depot: &mut Depot, res: &mut Respon
 #[handler]
 pub fn show_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
     match utils::get_req_param::<i32>(req, "id") {
-        Err(error) => {
-            res.status_code(StatusCode::BAD_REQUEST);
-            res.render(format!("Incorrect <id>: {error}"));
-        },
+        Err(error) => api_errors::render_parse_field_error(res, error, "id"),
+
         Ok(id) => match repo::find_product(id) {
-            Err(_) => {
-                res.status_code(StatusCode::NOT_FOUND);
-            },
+            Err(_) => api_errors::render_resource_not_found(res, "product"),
+
             Ok(product) => {
                 res.render(Json(product));
             }
@@ -60,20 +53,13 @@ pub fn show_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
 #[handler]
 pub fn remove_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
     match utils::get_req_param(req, "id") {
-        Err(error) => {
-            res.status_code(StatusCode::BAD_REQUEST);
-            res.render(format!("Incorrect <id>: {error}"));
-        },
+        Err(error) => api_errors::render_parse_field_error(res, error, "id"),
+
         Ok(id) => match repo::delete_product(id) {
-            Err(error) => {
-                res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-                res.render(format!("Error deleting `product`: {error}"));
-            },
+            Err(error) => api_errors::render_db_delete_error(res, error, "product"),
+
             Ok(total_deleted) => match total_deleted {
-                0 => {
-                    res.status_code(StatusCode::NOT_FOUND);
-                    res.render(format!("Nothing was deleted"));
-                },
+                0 => api_errors::render_resource_not_found(res, "product"),
                 1 => {
                     res.status_code(StatusCode::ACCEPTED);
                 },
@@ -88,50 +74,44 @@ pub fn remove_product(req: &mut Request, _depot: &mut Depot, res: &mut Response)
 #[handler]
 pub async fn update_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
     match utils::get_req_param(req, "id") {
-        Err(error) => {
-            res.status_code(StatusCode::BAD_REQUEST);
-            res.render(format!("Incorrect <id>: {error}"));
-        },
+        Err(error) => api_errors::render_parse_field_error(res, error, "id"),
+
         Ok(id) => match req.form_data().await {
-            Err(error) => {
-                res.status_code(StatusCode::BAD_REQUEST);
-                res.render(format!("Error getting the form data: {error}"));
-            },
+            Err(error) => api_errors::render_form_data_error(res, error),
+
             Ok(form_data) => match repo::find_product(id) {
-                Err(_) => {
-                    res.status_code(StatusCode::NOT_FOUND);
-                    res.render("Error `product` not found");
-                },
+                Err(_) => api_errors::render_resource_not_found(res, "products"),
+
                 Ok(product) => {
                     let product_updated = product.merge(form_data);
 
                     match repo::update_product(&product_updated) {
-                        Err(error) => {
-                            res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-                            res.render(format!("Error updating `product`: {error}"));
-                        },
+                        Err(error) => api_errors::render_db_update_error(res, error, "product"),
+
                         Ok(product_updated) => {
                             res.status_code(StatusCode::ACCEPTED);
                             res.render(Json(product_updated));
                         }
                     }
-                }                
+                }
             }
-        }   
+        }
     }
 }
 
-fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, Error> {
+fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, api_errors::Error> {
+    use api_errors::Error::{FieldNotFound, ParseFloatErr};
+
     let name = form_data.fields.get("name")
-        .ok_or(Error::FieldNotFound("name"))?;
+        .ok_or(FieldNotFound("name"))?;
 
     let description = form_data.fields.get("description")
-        .ok_or(Error::FieldNotFound("description"))?;
+        .ok_or(FieldNotFound("description"))?;
 
     let price: f32 = form_data.fields.get("price")
-        .ok_or(Error::FieldNotFound("price"))?
+        .ok_or(FieldNotFound("price"))?
         .parse()
-        .map_err(|_| Error::ParseFloatErr("price"))?;
+        .map_err(|_| ParseFloatErr("price"))?;
 
     let new_product = NewProduct { name, description, price, available: false };
 

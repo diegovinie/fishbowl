@@ -7,7 +7,7 @@ use salvo::prelude::*;
 use salvo::jwt_auth::{ConstDecoder, QueryFinder, HeaderFinder};
 use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, Duration};
-use super::Error;
+use crate::api::errors as api_errors;
 
 const SECRET_KEY: &str = "YOUR SECRET_KEY";
 
@@ -37,7 +37,7 @@ pub async fn authenticate(req: &mut Request, _depot: &mut Depot, res: &mut Respo
         Ok(form_data) => match cast_login_form_data(form_data) {
             Err(error) => {
                 res.status_code(StatusCode::BAD_REQUEST);
-                res.render(format!("Error parsing the form data fields: {error:?}"));    
+                res.render(format!("Error parsing the form data fields: {error:?}"));
             },
             Ok((email_candidate, password_candidate)) => match repo::validate(email_candidate, password_candidate) {
                 None => {
@@ -47,7 +47,7 @@ pub async fn authenticate(req: &mut Request, _depot: &mut Depot, res: &mut Respo
                 Some(user) => match create_token(user.email, user.id) {
                     Err(error) => {
                         res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-                        res.render(format!("Error creating token: {error:?}")); 
+                        res.render(format!("Error creating token: {error:?}"));
                     },
                     Ok(token) => {
                         res.render(token);
@@ -72,15 +72,16 @@ pub fn handle_auth(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
     }
 }
 
-fn cast_login_form_data(form_data: &FormData) -> Result<(&str, &str), Error> {
+fn cast_login_form_data(form_data: &FormData) -> Result<(&str, &str), api_errors::Error> {
+    use api_errors::Error::FieldNotFound;
+
     let casted_email = form_data.fields.get("email")
-        .ok_or(Error::FieldNotFound("email"))?;
+        .ok_or(FieldNotFound("email"))?;
 
     let casted_password = form_data.fields.get("password")
-        .ok_or(Error::FieldNotFound("password"))?;   
+        .ok_or(FieldNotFound("password"))?;
 
     Ok((casted_email, casted_password))
-
 }
 
 fn create_token(username: String, id: i32) -> Result<String, jsonwebtoken::errors::Error> {

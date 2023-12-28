@@ -3,12 +3,6 @@ pub mod products;
 pub mod wishlists;
 pub mod errors;
 
-#[derive(Debug)]
-pub enum Error<'a> {
-    FieldNotFound(&'a str),
-    ParseFloatErr(&'a str),
-}
-
 pub mod utils {
     use salvo::prelude::*;
     use std::str::FromStr;
