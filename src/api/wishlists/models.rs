@@ -46,3 +46,12 @@ impl Updatable for Wishlist {
         }
     }
 }
+
+#[derive(Serialize)]
+#[derive(Queryable, Selectable)]
+#[diesel(table_name = crate::schema::wishlists)]
+pub struct ListedWishlist {
+    pub id: i32,
+    pub title: String,
+    pub date: Option<SystemTime>,
+}

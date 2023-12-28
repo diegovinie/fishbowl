@@ -1,23 +1,23 @@
 use diesel::prelude::*;
 use crate::db;
 use crate::schema::products::table as products_table;
-use super::models::{Product, NewProduct};
+use super::models::{Product, NewProduct, ListedProduct};
 use diesel::result::Error;
 
 pub fn find_product(id: i32) -> Result<Product, Error> {
     let connection = &mut db::establish_connection();
-    
+
     products_table
         .find(id)
         .select(Product::as_select())
         .first(connection)
 }
 
-pub fn list_products() -> Result<Vec<Product>, Error> {
+pub fn list_products() -> Result<Vec<ListedProduct>, Error> {
     let conn = &mut db::establish_connection();
-    
+
     products_table
-        .select(Product::as_select())
+        .select(ListedProduct::as_select())
         .load(conn)
 }
 

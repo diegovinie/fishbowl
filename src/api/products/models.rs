@@ -48,3 +48,13 @@ impl Updatable for Product {
         }
     }
 }
+
+#[derive(Serialize)]
+#[derive(Queryable, Selectable)]
+#[diesel(table_name = crate::schema::products)]
+pub struct ListedProduct {
+    pub id: i32,
+    pub name: String,
+    pub price: f32,
+    pub available: bool,
+}
