@@ -1,12 +1,12 @@
 use salvo::prelude::*;
-use fishbowl::api::{auth, products, wishlists};
+use fishbowl::api::auth;
+use fishbowl::api::resources::{products, wishlists};
 use dotenvy::dotenv;
 use std::env;
 
 #[handler]
 async fn hello(_req: &mut Request, _depot: &mut Depot, res: &mut Response) {
     res.render("Hi!");
-
 }
 
 #[tokio::main]

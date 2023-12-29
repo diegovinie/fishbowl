@@ -1,7 +1,6 @@
 pub mod auth;
-pub mod products;
-pub mod wishlists;
 pub mod errors;
+pub mod resources;
 
 pub mod utils {
     use salvo::prelude::*;
