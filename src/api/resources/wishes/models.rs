@@ -23,3 +23,22 @@ pub struct NewWish {
     pub wishlist_id: i32,
     pub product_id: i32,
 }
+
+#[derive(Serialize)]
+pub struct WishProduct {
+    pub id: i32,
+    pub wishlist_id: i32,
+    pub product: Product,
+    pub pending: bool,
+}
+
+impl WishProduct {
+    pub fn from(wish: Wish, product: Product) -> Self {
+        Self {
+            id: wish.id,
+            wishlist_id: wish.wishlist_id,
+            pending: wish.pending,
+            product,
+        }
+    }
+}

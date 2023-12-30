@@ -28,6 +28,31 @@ pub fn list_wishes(req: &mut Request, depot: &mut Depot, res: &mut Response) {
 }
 
 #[handler]
+pub fn show_wish(req: &mut Request, depot: &mut Depot, res: &mut Response) {
+    match (utils::get_user_id(depot), req.param::<i32>("wishlist_id")) {
+        (None, _) => api_errors::render_get_user_id_not_found(res),
+
+        (_, None) => api_errors::render_resource_not_found(res, "associated wishlist"),
+
+        (Some(user_id), Some(wishlist_id)) => match find_wishlist(wishlist_id, user_id) {
+            Err(_) => api_errors::render_db_resource_not_associated(res, "wishlist"),
+
+            Ok(_wishlist) => match req.param::<i32>("id") {
+                None => api_errors::render_resource_not_found(res, "wish_id"),
+
+                Some(id) => match repo::find_wish(id) {
+                    Err(error) => api_errors::render_db_retrieving_error(res, error, "wish"),
+
+                    Ok(wish) => {
+                        res.render(Json(wish));
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[handler]
 pub async fn create_wish(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     match (req.param::<i32>("wishlist_id"), utils::get_user_id(depot)) {
         (_, None) => api_errors::render_get_user_id_not_found(res),
