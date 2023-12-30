@@ -30,25 +30,17 @@ pub fn decode_token() -> JwtAuth<JwtClaims, ConstDecoder> {
 #[handler]
 pub async fn authenticate(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
     match req.form_data().await {
-        Err(error) => {
-            res.status_code(StatusCode::BAD_REQUEST);
-            res.render(format!("Error getting the form data: {error}"));
-        },
+        Err(error) => api_errors::render_form_data_error(res, error),
+
         Ok(form_data) => match cast_login_form_data(form_data) {
-            Err(error) => {
-                res.status_code(StatusCode::BAD_REQUEST);
-                res.render(format!("Error parsing the form data fields: {error:?}"));
-            },
+            Err(error) => api_errors::render_cast_error(res, error),
+
             Ok((email_candidate, password_candidate)) => match repo::validate(email_candidate, password_candidate) {
-                None => {
-                    res.status_code(StatusCode::NOT_ACCEPTABLE);
-                    res.render("Authentication failed");
-                },
+                None => api_errors::render_auth_validation_none(res),
+
                 Some(user) => match create_token(user.email, user.id) {
-                    Err(error) => {
-                        res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-                        res.render(format!("Error creating token: {error:?}"));
-                    },
+                    Err(error) => api_errors::render_auth_create_token_error(res, error),
+
                     Ok(token) => {
                         res.render(token);
                     }
