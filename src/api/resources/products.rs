@@ -1,4 +1,4 @@
-mod models;
+pub mod models;
 mod controllers;
 mod repo;
 
@@ -16,5 +16,5 @@ pub fn get_router() -> Router {
             .get(show_product)
             .delete(remove_product)
             .put(update_product)
-        )     
+        )
 }

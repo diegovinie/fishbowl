@@ -1,10 +1,10 @@
-mod models;
-mod controllers;
-mod repo;
+pub mod models;
+pub mod controllers;
+pub mod repo;
 
 use salvo::prelude::*;
 use crate::api::auth;
-use self::controllers::{list_wishlist, create_wishlist, delete_wishlist, show_wishlist, update_wishist};
+use self::controllers::{list_wishlist, create_wishlist, delete_wishlist, show_wishlist, update_wishlist};
 
 
 pub fn get_router() -> Router {
@@ -15,6 +15,6 @@ pub fn get_router() -> Router {
         .push(Router::with_path("<id>")
             .get(show_wishlist)
             .delete(delete_wishlist)
-            .put(update_wishist)
-        )     
+            .put(update_wishlist)
+        )
 }

@@ -5,6 +5,7 @@ use serde::Serialize;
 #[derive(Debug)]
 pub enum Error<'a> {
     FieldNotFound(&'a str),
+    ParseIntErr(&'a str),
     ParseFloatErr(&'a str),
 }
 
@@ -57,6 +58,16 @@ pub fn render_auth_validation_none(res: &mut Response) {
 pub fn render_auth_create_token_error(res: &mut Response, error: impl Debug) {
     res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
     res.render(json(format!("Error creating token: {error:?}")));
+}
+
+pub fn render_inconsistency_error(res: &mut Response, value: impl Display) {
+    res.status_code(StatusCode::BAD_REQUEST);
+    res.render(json(format!("Error: `{value}` is not consistent")));
+}
+
+pub fn render_db_resource_not_associated(res: &mut Response, resource: impl Display) {
+    res.status_code(StatusCode::FORBIDDEN);
+    res.render(json(format!("Error: `user` not associated to `{resource}`")));
 }
 
 pub fn render_db_retrieving_error(res: &mut Response, error: impl Display, resource: impl Display) {

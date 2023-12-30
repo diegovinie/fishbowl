@@ -63,7 +63,7 @@ pub async fn create_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Res
 }
 
 #[handler]
-pub async fn update_wishist(req: &mut Request, depot: &mut Depot, res: &mut Response) {
+pub async fn update_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     match (utils::get_req_param(req, "id"), utils::get_user_id(depot)) {
         (Err(error), _) => api_errors::render_form_data_error(res, error),
 
