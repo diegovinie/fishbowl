@@ -1,5 +1,14 @@
 {
     "rust-analyzer.linkedProjects": [
         "./Cargo.toml"
+    ],
+    "cSpell.words": [
+        "dotenv",
+        "dotenvy",
+        "Insertable",
+        "jsonwebtoken",
+        "plpgsql",
+        "regclass",
+        "wishist"
     ]
 }

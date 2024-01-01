@@ -1,7 +1,7 @@
 
 use salvo::prelude::*;
 use salvo::http::form::FormData;
-use crate::api::{utils, errors as api_errors};
+use crate::api::{utils, errors as api_errors, responses as api_responses};
 use super::models::NewWish;
 use super::repo;
 use crate::api::resources::wishlists::repo::find_wishlist;
@@ -19,9 +19,7 @@ pub fn list_wishes(req: &mut Request, depot: &mut Depot, res: &mut Response) {
             Ok(_) => match repo::list_wishes_from_wishlist(wishlist_id) {
                 Err(error) => api_errors::render_db_retrieving_error(res, error, "wishes"),
 
-                Ok(wishes) => {
-                    res.render(Json(wishes));
-                }
+                Ok(wishes) => api_responses::render_collection(res, wishes)
             }
         }
     }
@@ -43,9 +41,7 @@ pub fn show_wish(req: &mut Request, depot: &mut Depot, res: &mut Response) {
                 Some(id) => match repo::find_wish(id) {
                     Err(error) => api_errors::render_db_retrieving_error(res, error, "wish"),
 
-                    Ok(wish) => {
-                        res.render(Json(wish));
-                    }
+                    Ok(wish) => api_responses::render_resource(res, wish)
                 }
             }
         }
@@ -73,10 +69,7 @@ pub async fn create_wish(req: &mut Request, depot: &mut Depot, res: &mut Respons
                     (Ok(_), true) => match repo::insert_wish(new_wish) {
                         Err(error) => api_errors::render_db_insert_error(res, error, "wish"),
 
-                        Ok(wish) => {
-                            res.status_code(StatusCode::ACCEPTED);
-                            res.render(Json(wish));
-                        }
+                        Ok(wish) => api_responses::render_resource_created(res, wish)
                     }
                 }
             }

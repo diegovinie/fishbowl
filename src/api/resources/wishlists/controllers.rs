@@ -1,7 +1,7 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
 use crate::api::auth::JwtClaims;
-use crate::api::{utils, errors as api_errors};
+use crate::api::{utils, errors as api_errors, responses as api_responses};
 use crate::models::Updatable;
 use super::models::NewWishlist;
 use super::repo;
@@ -14,9 +14,7 @@ pub fn list_wishlist(_req: &mut Request, depot: &mut Depot, res: &mut Response) 
         Some(user_id) => match repo::list_wishlists(user_id) {
             Err(error) => api_errors::render_db_retrieving_error(res, error, "wishlists"),
 
-            Ok(wishlists) => {
-                res.render(Json(wishlists));
-            }
+            Ok(wishlists) => api_responses::render_collection(res, wishlists)
         }
     }
 }
@@ -31,9 +29,7 @@ pub fn show_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response) {
         (Ok(id), Some(user_id)) => match repo::find_wishlist(id, user_id) {
             Err(_) => api_errors::render_resource_not_found(res, "wishlist"),
 
-            Ok(wishlist) => {
-                res.render(Json(wishlist));
-            }
+            Ok(wishlist) => api_responses::render_resource(res, wishlist)
         }
     }
 }
@@ -53,9 +49,7 @@ pub async fn create_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Res
                 Ok(new_wishlist) => match repo::insert_wishist(new_wishlist) {
                     Err(error) => api_errors::render_db_insert_error(res, error, "wishlist"),
 
-                    Ok(wishlist) => {
-                        res.render(Json(wishlist));
-                    }
+                    Ok(wishlist) => api_responses::render_resource_created(res, wishlist)
                 }
             }
         }
@@ -81,10 +75,7 @@ pub async fn update_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Res
                     match repo::update_wishist(&updated_wishlist, user_id) {
                         Err(error) => api_errors::render_db_update_error(res, error, "wishlist"),
 
-                        Ok(updated_wishlist) => {
-                            res.status_code(StatusCode::ACCEPTED);
-                            res.render(Json(updated_wishlist));
-                        }
+                        Ok(updated_wishlist) => api_responses::render_resource_updated(res, updated_wishlist)
                     }
                 }
             }
@@ -105,12 +96,7 @@ pub fn delete_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response)
             Ok(total_deleted) => match total_deleted {
                 0 => api_errors::render_resource_not_found(res, "wishlist"),
 
-                1 => {
-                    res.status_code(StatusCode::ACCEPTED);
-                },
-                _other => {
-                    res.render(format!("Total deleted: {}", total_deleted));
-                }
+                _other => api_responses::render_resource_deleted(res, total_deleted)
             }
         }
     }

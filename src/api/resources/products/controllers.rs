@@ -1,6 +1,6 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
-use crate::api::{utils, errors as api_errors};
+use crate::api::{utils, responses as api_responses, errors as api_errors};
 use crate::models::Updatable;
 use super::models::NewProduct;
 use super::repo;
@@ -10,9 +10,7 @@ pub fn list_products(_req: &mut Request, _depot: &mut Depot, res: &mut Response)
     match repo::list_products() {
         Err(error) => api_errors::render_db_retrieving_error(res, error, "products"),
 
-        Ok(products) => {
-            res.render(Json(products));
-        }
+        Ok(products) => api_responses::render_collection(res, products)
     }
 }
 
@@ -27,9 +25,7 @@ pub async fn add_product(req: &mut Request, _depot: &mut Depot, res: &mut Respon
             Ok(new_product) => match repo::insert_product(new_product) {
                 Err(error) => api_errors::render_db_insert_error(res, error, "product"),
 
-                Ok(product) => {
-                    res.render(Json(product));
-                }
+                Ok(product) => api_responses::render_resource_created(res, product)
             }
         }
     }
@@ -43,9 +39,7 @@ pub fn show_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
         Ok(id) => match repo::find_product(id) {
             Err(_) => api_errors::render_resource_not_found(res, "product"),
 
-            Ok(product) => {
-                res.render(Json(product));
-            }
+            Ok(product) => api_responses::render_resource(res, product)
         }
     }
 }
@@ -60,12 +54,8 @@ pub fn remove_product(req: &mut Request, _depot: &mut Depot, res: &mut Response)
 
             Ok(total_deleted) => match total_deleted {
                 0 => api_errors::render_resource_not_found(res, "product"),
-                1 => {
-                    res.status_code(StatusCode::ACCEPTED);
-                },
-                _other => {
-                    res.render(format!("Total deleted: {}", total_deleted));
-                }
+
+                _other => api_responses::render_resource_deleted(res, total_deleted)
             }
         }
     }
@@ -88,10 +78,7 @@ pub async fn update_product(req: &mut Request, _depot: &mut Depot, res: &mut Res
                     match repo::update_product(&product_updated) {
                         Err(error) => api_errors::render_db_update_error(res, error, "product"),
 
-                        Ok(product_updated) => {
-                            res.status_code(StatusCode::ACCEPTED);
-                            res.render(Json(product_updated));
-                        }
+                        Ok(updated_product) => api_responses::render_resource_updated(res, updated_product)
                     }
                 }
             }

@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod errors;
 pub mod resources;
+pub mod responses;
 
 pub mod utils {
     use salvo::prelude::*;
@@ -22,6 +23,7 @@ pub mod utils {
         }
     }
 }
+
 
 pub mod users {
     pub mod models {use diesel::prelude::*;
