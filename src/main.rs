@@ -1,13 +1,9 @@
 use salvo::prelude::*;
+use fishbowl::home::home_controller;
 use fishbowl::api;
 use fishbowl::api::auth;
 use dotenvy::dotenv;
 use std::env;
-
-#[handler]
-async fn hello(_req: &mut Request, _depot: &mut Depot, res: &mut Response) {
-    res.render("Hi!");
-}
 
 #[tokio::main]
 async fn main() {
@@ -19,7 +15,7 @@ async fn main() {
 
     let router = Router::new()
         .hoop(auth::decode_token())
-        .get(hello)
+        .get(home_controller)
         .push(Router::with_path("files/<**path>").get(
             StaticDir::new([
                 env::current_dir().unwrap().join("static")
