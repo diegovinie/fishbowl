@@ -1,6 +1,6 @@
 use salvo::prelude::*;
+use fishbowl::api;
 use fishbowl::api::auth;
-use fishbowl::api::resources::{products, wishlists, wishes};
 use dotenvy::dotenv;
 use std::env;
 
@@ -27,9 +27,7 @@ async fn main() {
             .auto_list(true)
         ))
         .push(Router::with_path("auth").post(auth::authenticate))
-        .push(products::get_router())
-        .push(wishlists::get_router())
-        .push(wishes::get_router());
+        .push(api::get_router());
 
     let acceptor = TcpListener::new(format!("{domain}:{port}")).bind().await;
 

@@ -57,3 +57,13 @@ pub mod users {
         }
     }
 }
+
+pub fn get_router() -> salvo::Router {
+    use resources::{products, wishlists, wishes};
+
+    salvo::Router::with_path("api")
+        .path("v1")
+        .push(products::get_router())
+        .push(wishlists::get_router())
+        .push(wishes::get_router())
+}
