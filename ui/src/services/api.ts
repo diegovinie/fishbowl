@@ -33,3 +33,7 @@ export const auth = {
 export const products = {
   list: () => client.get('products'),
 }
+
+export const wishlists = {
+  list: () => client.get('wishlists')
+}

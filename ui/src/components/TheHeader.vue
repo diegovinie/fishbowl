@@ -11,10 +11,11 @@ const logout = async () => {
 
 <template>
     <header class="p-4 bg-stone-400 flex">
-        <div class="my-auto flex gap-2">
-            <RouterLink to="login">login</RouterLink>
-            <RouterLink to="home">home</RouterLink>
-            <RouterLink to="products">products</RouterLink>
+        <div class="my-auto flex gap-4">
+            <RouterLink to="/login">login</RouterLink>
+            <RouterLink to="/">home</RouterLink>
+            <RouterLink to="/products">products</RouterLink>
+            <RouterLink to="/my/wishlists">my wishlists</RouterLink>
         </div>
         <div class="text-right ml-auto my-auto mr-4">
             {{ profile.email ?? 'nobody' }}

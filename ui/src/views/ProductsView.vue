@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { products as productsApi } from '@/services/api';
+import ProductsTable from '@/components/ProductsTable.vue';
+import type { ListedProduct } from '@/interfaces';
 
-interface Product {
-    id: number,
-    name: string,
-    price: number,
-    available: boolean,
-}
 
-const products = ref<Product[]>([]);
+const products = ref<ListedProduct[]>([]);
 
 function fetchProducts() {
     return productsApi.list()
@@ -30,14 +26,7 @@ onMounted(() => {
           <button class="btn" @click="fetchProducts" >Refresh</button>
           <button class="btn m-4">Add product</button>
         </div>
-        <table>
-          <tr v-for="product in products" :key="product.id">
-            <td class="pr-4 py-2">{{ product.id }}</td>
-            <td class="pr-4 py-2">{{ product.name }}</td>
-            <td class="pr-4 py-2 text-right">{{ product.price }}</td>
-            <td class="pr-4 py-2">{{ product.available ? ':)' : 'X(' }}</td>
-          </tr>
-        </table>
+        <ProductsTable :products="products" />
       </div>
     </main>
 </template>
