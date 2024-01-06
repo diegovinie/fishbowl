@@ -6,7 +6,7 @@ publish = false
 
 [dependencies]
 jsonwebtoken = "8.0"
-salvo = {  version = "0.59", features = ["anyhow", "jwt-auth", "serve-static"] }
+salvo = {  version = "0.59", features = ["anyhow", "jwt-auth", "serve-static", "cors"] }
 time = "0.3"
 tokio = { version = "1", features = ["macros"] }
 tracing = "0.1"

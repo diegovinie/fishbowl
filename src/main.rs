@@ -1,4 +1,6 @@
 use salvo::prelude::*;
+use salvo::cors::Cors;
+use salvo::http::Method;
 use fishbowl::home::home_controller;
 use fishbowl::api;
 use fishbowl::api::auth;
@@ -13,7 +15,13 @@ async fn main() {
 
     tracing_subscriber::fmt().init();
 
+    let cors_handler = Cors::new()
+    .allow_origin("http://localhost:5173")
+    .allow_methods(vec![Method::GET, Method::POST, Method::DELETE])
+    .into_handler();
+
     let router = Router::new()
+        .hoop(cors_handler)
         .hoop(auth::decode_token())
         .get(home_controller)
         .push(Router::with_path("files/<**path>").get(
