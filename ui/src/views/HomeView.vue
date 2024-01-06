@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+
 </script>
 
 <template>
   <main>
-    <TheWelcome />
+    <div class="">
+      Welcome!
+    </div>
+    <RouterLink to="/products">products</RouterLink>
   </main>
 </template>
