@@ -6,10 +6,21 @@ export const client = axios.create({
 
 const setAuthToken = (token: string) => {
   client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  localStorage.setItem('auth_token', token);
+}
+
+export const loadAuthToken = () => {
+  const token = localStorage.getItem('auth_token');
+
+  if (token) {
+    client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  }
 }
 
 const removeAuthToken = () => {
   delete client.defaults.headers.common.Authorization;
+
+  localStorage.removeItem('auth_token');
 }
 
 export const auth = {
