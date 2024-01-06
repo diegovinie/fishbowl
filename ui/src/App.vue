@@ -1,16 +1,9 @@
 <script setup lang="ts">
-
+import TheHeader from '@/components/TheHeader.vue';
 </script>
 
 <template>
-  <header>
-    <div class="wrapper">
-      status bar
-      <nav>
-
-      </nav>
-    </div>
-  </header>
+  <TheHeader />
 
   <RouterView />
 </template>

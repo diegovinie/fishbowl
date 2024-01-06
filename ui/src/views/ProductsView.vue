@@ -13,27 +13,31 @@ const products = ref<Product[]>([]);
 
 function fetchProducts() {
     return productsApi.list()
-        .then(({ data: { data } }) => data);
+        .then(({ data: { data } }) => {
+          products.value = data;
+        })
 }
 
-onMounted(async () => {
-    products.value = await fetchProducts();
+onMounted(() => {
+    fetchProducts();
 })
 </script>
 
 <template>
-    <main>
-        <ul>
-            <li v-for="product in products" :key="product.id">
-                <ul>
-                    <li>{{ product.id }}</li>
-                    <li>{{ product.name }}</li>
-                    <li>{{ product.price }}</li>
-                    <li>{{ product.available ? ':)' : 'X(' }}</li>
-                </ul>
-            </li>
-        </ul>
-
-        <button @click="fetchProducts">get</button>
+    <main class="flex">
+      <div class="m-auto">
+        <div>
+          <button class="btn" @click="fetchProducts" >Refresh</button>
+          <button class="btn m-4">Add product</button>
+        </div>
+        <table>
+          <tr v-for="product in products" :key="product.id">
+            <td class="pr-4 py-2">{{ product.id }}</td>
+            <td class="pr-4 py-2">{{ product.name }}</td>
+            <td class="pr-4 py-2 text-right">{{ product.price }}</td>
+            <td class="pr-4 py-2">{{ product.available ? ':)' : 'X(' }}</td>
+          </tr>
+        </table>
+      </div>
     </main>
 </template>
