@@ -1,11 +1,10 @@
-
 mod controllers;
-mod models;
-mod repo;
+pub mod models;
+pub mod repo;
 
 use salvo::prelude::*;
+use self::controllers::{create_wish, list_wishes, show_wish};
 use crate::api::auth;
-use self::controllers::{list_wishes, show_wish, create_wish};
 
 pub fn get_router() -> Router {
     Router::with_path("wishlists/<wishlist_id>/wishes")

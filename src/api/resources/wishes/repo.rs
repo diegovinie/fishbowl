@@ -1,9 +1,10 @@
 use diesel::prelude::*;
+use super::models::{NewWish, Wish, WishProduct};
 use crate::api::resources::products::models::Product;
 use crate::db;
+use crate::schema;
 use crate::schema::wishes::table as wishes_table;
 use crate::schema::products::table as products_table;
-use super::models::{Wish, NewWish, WishProduct};
 use diesel::result::Error;
 use crate::schema::wishes as wishes_schema;
 
@@ -39,4 +40,21 @@ pub fn find_wish(id: i32) -> Result<WishProduct, Error> {
         .get_result(conn)?;
 
     Ok(WishProduct::from(wish, product))
+}
+
+pub fn list_detailed_wishes(id: i32) -> Result<Vec<WishProduct>, Error> {
+    let conn = &mut db::establish_connection();
+
+    let wish_product_list = schema::wishes::table
+        .inner_join(schema::products::table)
+        .filter(schema::wishes::wishlist_id.eq(id))
+        .select((Wish::as_select(), Product::as_select()))
+        .load::<(Wish, Product)>(conn)?;
+
+    let wishes = wish_product_list
+        .into_iter()
+        .map(|(w, p)| WishProduct::from(w, p))
+        .collect();
+
+    Ok(wishes)
 }

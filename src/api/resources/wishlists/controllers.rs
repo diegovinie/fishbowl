@@ -1,7 +1,7 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
 use crate::api::auth::JwtClaims;
-use crate::api::{utils, errors as api_errors, responses as api_responses};
+use crate::api::{errors as api_errors, responses as api_responses, utils};
 use crate::models::Updatable;
 use super::models::NewWishlist;
 use super::repo;
@@ -14,8 +14,8 @@ pub fn list_wishlist(_req: &mut Request, depot: &mut Depot, res: &mut Response) 
         Some(user_id) => match repo::list_wishlists(user_id) {
             Err(error) => api_errors::render_db_retrieving_error(res, error, "wishlists"),
 
-            Ok(wishlists) => api_responses::render_collection(res, wishlists)
-        }
+            Ok(wishlists) => api_responses::render_collection(res, wishlists),
+        },
     }
 }
 
@@ -26,11 +26,18 @@ pub fn show_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response) {
 
         (_, None) => api_errors::render_get_user_id_not_found(res),
 
-        (Ok(id), Some(user_id)) => match repo::find_wishlist(id, user_id) {
-            Err(_) => api_errors::render_resource_not_found(res, "wishlist"),
+        (Ok(id), Some(user_id)) => match req.query::<String>("detailed") {
+            None => match repo::find_wishlist(id, user_id) {
+                Err(_) => api_errors::render_resource_not_found(res, "wishlist"),
 
-            Ok(wishlist) => api_responses::render_resource(res, wishlist)
-        }
+                Ok(wishlist) => api_responses::render_resource(res, wishlist),
+            },
+            Some(_) => match repo::find_detailed_wishlist(id, user_id) {
+                Err(_) => api_errors::render_resource_not_found(res, "wishlist"),
+
+                Ok(wishlist) => api_responses::render_resource(res, wishlist),
+            },
+        },
     }
 }
 
@@ -49,8 +56,8 @@ pub async fn create_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Res
                 Ok(new_wishlist) => match repo::insert_wishist(new_wishlist) {
                     Err(error) => api_errors::render_db_insert_error(res, error, "wishlist"),
 
-                    Ok(wishlist) => api_responses::render_resource_created(res, wishlist)
-                }
+                    Ok(wishlist) => api_responses::render_resource_created(res, wishlist),
+                },
             }
         }
     }
@@ -75,11 +82,13 @@ pub async fn update_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Res
                     match repo::update_wishist(&updated_wishlist, user_id) {
                         Err(error) => api_errors::render_db_update_error(res, error, "wishlist"),
 
-                        Ok(updated_wishlist) => api_responses::render_resource_updated(res, updated_wishlist)
+                        Ok(updated_wishlist) => {
+                            api_responses::render_resource_updated(res, updated_wishlist)
+                        }
                     }
                 }
-            }
-        }
+            },
+        },
     }
 }
 
@@ -96,22 +105,33 @@ pub fn delete_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response)
             Ok(total_deleted) => match total_deleted {
                 0 => api_errors::render_resource_not_found(res, "wishlist"),
 
-                _other => api_responses::render_resource_deleted(res, total_deleted)
-            }
-        }
+                _other => api_responses::render_resource_deleted(res, total_deleted),
+            },
+        },
     }
 }
 
-fn cast_form_data_to_new_wishlist(form_data: &FormData, user_id: i32) -> Result<NewWishlist, api_errors::Error> {
+fn cast_form_data_to_new_wishlist(
+    form_data: &FormData,
+    user_id: i32,
+) -> Result<NewWishlist, api_errors::Error> {
     use api_errors::Error::FieldNotFound;
 
-    let title = form_data.fields.get("title")
+    let title = form_data
+        .fields
+        .get("title")
         .ok_or(FieldNotFound("title"))?;
 
-    let description = form_data.fields.get("description")
+    let description = form_data
+        .fields
+        .get("description")
         .ok_or(FieldNotFound("description"))?;
 
-    let new_wishlist = NewWishlist { title, description: Some(description), user_id };
+    let new_wishlist = NewWishlist {
+        title,
+        description: Some(description),
+        user_id,
+    };
 
     Ok(new_wishlist)
 }
