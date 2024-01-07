@@ -1,10 +1,19 @@
 <script setup lang="ts">
 import TheHeader from '@/components/TheHeader.vue';
 import { onMounted } from 'vue';
-import { loadAuthToken } from './services/api';
+import { loadAuthToken, setAuthInterceptor } from './services/api';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const onUnauthorized = () => {
+  router.push('/login');
+}
 
 onMounted(() => {
   loadAuthToken();
+
+  setAuthInterceptor(onUnauthorized);
 })
 </script>
 

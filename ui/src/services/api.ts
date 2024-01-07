@@ -1,8 +1,36 @@
-import axios from 'axios';
+import axios, { AxiosError, type AxiosResponse } from 'axios';
 
 export const client = axios.create({
   baseURL: 'http://localhost:5800/api/v1/'
 });
+
+
+
+let authInterceptor: number | null;
+
+export const setAuthInterceptor = (onUnauthorized: () => void) => {
+  const onSuccess = (response: AxiosResponse) => response;
+
+  const onError = (error: AxiosError) => {
+    const status = error.response?.status;
+
+    if ((status === 401 || status === 403)) {
+      console.log('Auth failed', status);
+      onUnauthorized();
+    }
+
+    return error;
+  }
+
+  authInterceptor = client.interceptors.response.use(onSuccess, onError);
+}
+
+export const ejectAuthInterceptor = () => {
+  if (authInterceptor) {
+    client.interceptors.response.eject(authInterceptor);
+    authInterceptor = null;
+  }
+}
 
 const setAuthToken = (token: string) => {
   client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -46,5 +74,7 @@ export const products = {
 }
 
 export const wishlists = {
-  list: () => client.get('wishlists')
+  list: () => client.get('wishlists'),
+
+  showDetailed: (id: number) => client.get(`wishlists/${id}?detailed=true`),
 }
