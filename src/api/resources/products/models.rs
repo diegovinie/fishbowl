@@ -11,7 +11,7 @@ use crate::models::Updatable;
 pub struct Product {
     pub id: i32,
     pub name: String,
-    pub description: String,
+    pub description: Option<String>,
     pub url: Option<String>,
     pub price: f32,
     pub available: bool,
@@ -20,9 +20,7 @@ pub struct Product {
 #[derive(Debug)]
 #[derive(Insertable)]
 #[diesel(table_name = products)]
-pub struct NewProduct<'a> {
-    pub name: &'a str,
-    pub description: &'a str,
+    pub description: Option<String>,
     pub available: bool,
     pub price: f32,
 }
@@ -35,8 +33,7 @@ impl Updatable for Product {
                 .unwrap_or(&self.name)
                 .to_string(),
             description: form_data.fields.get("description")
-                .unwrap_or(&self.description)
-                .to_string(),
+                .map(|d| d.to_string()),
             url: form_data.fields.get("url")
                 .map(|u| u.to_string()),
             price: form_data.fields.get("price")

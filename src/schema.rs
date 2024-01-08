@@ -4,7 +4,7 @@ diesel::table! {
     products (id) {
         id -> Int4,
         name -> Varchar,
-        description -> Text,
+        description -> Nullable<Text>,
         url -> Nullable<Varchar>,
         price -> Float4,
         available -> Bool,

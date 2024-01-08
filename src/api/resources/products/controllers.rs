@@ -93,7 +93,7 @@ fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, api
         .ok_or(FieldNotFound("name"))?;
 
     let description = form_data.fields.get("description")
-        .ok_or(FieldNotFound("description"))?;
+        .map(|d| d.to_string());
 
     let price: f32 = form_data.fields.get("price")
         .ok_or(FieldNotFound("price"))?
