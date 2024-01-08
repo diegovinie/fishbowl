@@ -7,6 +7,7 @@ use crate::schema::wishes::table as wishes_table;
 use crate::schema::products::table as products_table;
 use diesel::result::Error;
 use crate::schema::wishes as wishes_schema;
+use crate::models::Composable;
 
 pub fn list_wishes_from_wishlist(wishlist_id: i32) -> Result<Vec<Wish>, Error> {
     let conn = &mut db::establish_connection();
@@ -39,7 +40,7 @@ pub fn find_wish(id: i32) -> Result<WishProduct, Error> {
         .select(Product::as_select())
         .get_result(conn)?;
 
-    Ok(WishProduct::from(wish, product))
+    Ok(WishProduct::compose(wish, product))
 }
 
 pub fn list_detailed_wishes(id: i32) -> Result<Vec<WishProduct>, Error> {
@@ -53,7 +54,7 @@ pub fn list_detailed_wishes(id: i32) -> Result<Vec<WishProduct>, Error> {
 
     let wishes = wish_product_list
         .into_iter()
-        .map(|(w, p)| WishProduct::from(w, p))
+        .map(|(w, p)| WishProduct::compose(w, p))
         .collect();
 
     Ok(wishes)

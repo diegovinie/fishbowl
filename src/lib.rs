@@ -25,4 +25,8 @@ pub mod models {
     pub trait Updatable {
         fn merge(&self, form_data: &FormData) -> Self;
     }
+
+    pub trait Composable<T, G> {
+        fn compose(tree: T, branch: G) -> Self;
+    }
 }

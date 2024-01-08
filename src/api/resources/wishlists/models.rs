@@ -5,7 +5,7 @@ use crate::schema::wishlists;
 use crate::api::resources::wishes::models::WishProduct;
 use std::time::SystemTime;
 use crate::api::users::models::User;
-use crate::models::Updatable;
+use crate::models::{Updatable, Composable};
 
 #[derive(
     Serialize,
@@ -76,16 +76,10 @@ pub struct DetailedWishlist {
     pub wishes: Vec<WishProduct>,
 }
 
-impl DetailedWishlist {
-    pub fn from(wishlist: Wishlist, wishes: Vec<WishProduct>) -> Self {
-        Self {
-            id: wishlist.id,
-            title: wishlist.title,
-            description: wishlist.description,
-            date: wishlist.date,
-            user_id: wishlist.user_id,
-            published: wishlist.published,
-            wishes,
-        }
+impl Composable<Wishlist, Vec<WishProduct>> for DetailedWishlist {
+    fn compose(wishlist: Wishlist, wishes: Vec<WishProduct>) -> Self {
+        let Wishlist { id, title, description, date,user_id, published } = wishlist;
+
+        Self { id, title, description, date, user_id, published, wishes }
     }
 }

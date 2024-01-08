@@ -16,6 +16,14 @@ pub struct ProductBatch {
     pub description: Option<String>,
 }
 
+impl Into<NewProduct> for ProductBatch {
+    fn into(self) -> NewProduct {
+        let Self { name, description, url, price } = self;
+
+        NewProduct { name, price, url, description, available: true }
+    }
+}
+
 #[handler]
 pub fn populate_products(_req: &mut Request, res: &mut Response) {
 
@@ -38,7 +46,7 @@ fn parse_products_csv() -> Result<Vec<NewProduct>, Box<dyn Error>> {
 
     for result in rdr.deserialize() {
         let product: ProductBatch = result?;
-        products.push(NewProduct::from(product));
+        products.push(product.into());
     }
 
     Ok(products)

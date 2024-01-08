@@ -5,6 +5,7 @@ use super::models::DetailedWishlist;
 use super::models::{ListedWishlist, NewWishlist, Wishlist};
 use diesel::result::Error;
 use crate::schema::wishlists as wishlist_schema;
+use crate::models::Composable;
 
 pub fn find_wishlist(id: i32, user_id: i32) -> Result<Wishlist, Error> {
     let conn = &mut db::establish_connection();
@@ -23,7 +24,7 @@ pub fn find_detailed_wishlist(id: i32, user_id: i32) -> Result<DetailedWishlist,
 
     let wishes = wishes_repo::list_detailed_wishes(id)?;
 
-    Ok(DetailedWishlist::from(wishlist, wishes))
+    Ok(DetailedWishlist::compose(wishlist, wishes))
 }
 
 pub fn list_wishlists(user_id: i32) -> Result<Vec<ListedWishlist>, Error> {

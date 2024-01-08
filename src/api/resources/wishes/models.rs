@@ -2,6 +2,7 @@ use diesel::prelude::*;
 use serde::Serialize;
 use crate::api::resources::wishlists::models::Wishlist;
 use crate::api::resources::products::models::Product;
+use crate::models::Composable;
 
 #[derive(Serialize, Debug, Clone)]
 #[derive(Queryable, Selectable, Identifiable, Associations, PartialEq, AsChangeset)]
@@ -32,13 +33,10 @@ pub struct WishProduct {
     pub pending: bool,
 }
 
-impl WishProduct {
-    pub fn from(wish: Wish, product: Product) -> Self {
-        Self {
-            id: wish.id,
-            wishlist_id: wish.wishlist_id,
-            pending: wish.pending,
-            product,
-        }
+impl Composable<Wish, Product> for WishProduct {
+    fn compose(wish: Wish, product: Product) -> Self {
+        let Wish { id, wishlist_id, pending, .. } = wish;
+
+        Self { id, wishlist_id, pending, product }
     }
 }
