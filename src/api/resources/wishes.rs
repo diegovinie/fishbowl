@@ -3,7 +3,7 @@ pub mod models;
 pub mod repo;
 
 use salvo::prelude::*;
-use self::controllers::{create_wish, list_wishes, show_wish};
+use self::controllers::{create_wish, list_wishes, show_wish, delete_wish};
 use crate::api::auth;
 
 pub fn get_router() -> Router {
@@ -13,5 +13,6 @@ pub fn get_router() -> Router {
         .post(create_wish)
         .push(Router::with_path("<id>")
             .get(show_wish)
+            .delete(delete_wish)
         )
 }

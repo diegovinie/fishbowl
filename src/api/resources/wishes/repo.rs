@@ -58,3 +58,10 @@ pub fn list_detailed_wishes(id: i32) -> Result<Vec<WishProduct>, Error> {
 
     Ok(wishes)
 }
+
+pub fn delete_wish(id: i32) -> Result<usize, Error> {
+    let conn = &mut db::establish_connection();
+
+    diesel::delete(schema::wishes::table.find(id))
+        .execute(conn)
+}
