@@ -11,7 +11,7 @@ defineProps<ProductTableProps>()
 
 <template>
   <table>
-    <tr v-for="product in products" :key="product.id">
+    <tr v-for="product in products" :key="product.id" @click="$emit('productClicked', product)">
       <td class="pr-4 py-2">{{ product.id }}</td>
       <td class="pr-4 py-2">{{ product.name }}</td>
       <td class="pr-4 py-2 text-right">{{ product.price }}</td>

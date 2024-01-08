@@ -1,3 +1,4 @@
+import type { ApiResponse, ListedProduct, Wish } from '@/interfaces';
 import axios, { AxiosError, type AxiosResponse } from 'axios';
 
 export const client = axios.create({
@@ -70,11 +71,23 @@ export const auth = {
 }
 
 export const products = {
-  list: () => client.get('products'),
+  list: () => client.get<ApiResponse<ListedProduct[]>>('products'),
 }
 
 export const wishlists = {
   list: () => client.get('wishlists'),
 
   showDetailed: (id: number) => client.get(`wishlists/${id}?detailed=true`),
+}
+
+export const wishes = {
+  addWish: (wishlistId: number, productId: number) => {
+    const formData = new FormData();
+    formData.append('wishlist_id', String(wishlistId));
+    formData.append('product_id', String(productId));
+
+    return client.post<FormData, ApiResponse<Wish>>(`wishlists/${wishlistId}/wishes`, formData);
+  },
+
+  delete: (wishlistId: number, wishId: number) => client.delete(`wishlists/${wishlistId}/wishes/${wishId}`),
 }

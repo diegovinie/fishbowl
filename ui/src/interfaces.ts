@@ -26,3 +26,7 @@ export interface ListedWishlist {
   title: string,
   date: string,
 }
+
+export interface ApiResponse<T> {
+  data: T,
+}

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { wishlists as api } from '@/services/api';
+import * as api from '@/services/api';
 import { onMounted, ref } from 'vue';
 import type { ListedWishlist, Wish } from '@/interfaces';
+import AddWishForm from '@/components/AddWishForm.vue';
 
 const route = useRoute();
-
 
 interface DetailedWishlist extends ListedWishlist {
     description: string;
@@ -15,14 +15,22 @@ interface DetailedWishlist extends ListedWishlist {
 
 const details = ref<DetailedWishlist>();
 
-const fetchWishlistDetails = () => {
-    const id = Number(route.params.id as string);
+const wishlistId = Number(route.params.id as string);
 
-    api.showDetailed(id)
+const fetchWishlistDetails = () => {
+    api.wishlists.showDetailed(wishlistId)
         .then(({ data: { data }}) => {
-            console.log(data);
             details.value = data;
         })
+}
+
+const deleteWish = (id: number) => {
+  api.wishes.delete(wishlistId, id)
+    .then(fetchWishlistDetails)
+}
+
+const onWishAdded = () => {
+  fetchWishlistDetails();
 }
 
 onMounted(() => {
@@ -32,25 +40,28 @@ onMounted(() => {
 </script>
 
 <template>
-
-    <main class="flex p-4">
-        <div class="m-auto">
-            <ul v-if="details">
-                <li>{{ details.title }}</li>
-                <li>{{ details.description }}</li>
-                <li>{{ details.published }}</li>
-                <li>
-                  <div>wishes:</div>
-                  <table>
-                    <tr v-for="wish in details.wishes" :key="wish.id">
-                      <td>{{ wish.pending }}</td>
-                      <td class="px-4">{{ wish.product.name }}</td>
-                      <td class="text-right">{{ wish.product.price }}</td>
-                    </tr>
-                  </table>
-                  <button class="btn mt-4">Add product</button>
-                </li>
-            </ul>
-        </div>
-    </main>
+  <main class="flex p-4 flex-col">
+    <div class="m-auto">
+      <ul v-if="details">
+        <li>{{ details.title }}</li>
+        <li>{{ details.description }}</li>
+        <li>{{ details.published }}</li>
+        <li>
+          <div>wishes:</div>
+          <table>
+            <tr v-for="wish in details.wishes" :key="wish.id">
+              <td>{{ wish.pending }}</td>
+              <td class="px-4">{{ wish.product.name }}</td>
+              <td class="text-right">{{ wish.product.price }}</td>
+              <td @click="deleteWish(wish.id)" class="px-4">x</td>
+            </tr>
+          </table>
+          <button class="btn mt-4">Add product</button>
+        </li>
+      </ul>
+    </div>
+    <section class="mx-auto mt-10">
+      <AddWishForm :wishlist-id="wishlistId" @wish-added="onWishAdded" />
+    </section>
+  </main>
 </template>
