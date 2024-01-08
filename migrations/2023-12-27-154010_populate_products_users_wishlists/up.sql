@@ -1,11 +1,11 @@
 -- Your SQL goes here
-INSERT INTO products (name, description, url, price) VALUES 
-    ('Armario Amarillo', 'El armario de mi abuela', 'https://t.ly/cel6a', 850000),
-    ('Comedor Dorado', 'El comedor de mi abuela', null, 500000),
-    ('Cuna ACME', 'La mejor cuna', null, 250000),
-    ('Licuadora Oster', 'La mejor cuna', 'https://t.ly/eKctR', 234900);
+-- INSERT INTO products (name, description, url, price) VALUES
+--     ('Armario Amarillo', 'El armario de mi abuela', 'https://t.ly/cel6a', 850000),
+--     ('Comedor Dorado', 'El comedor de mi abuela', null, 500000),
+--     ('Cuna ACME', 'La mejor cuna', null, 250000),
+--     ('Licuadora Oster', 'La mejor cuna', 'https://t.ly/eKctR', 234900);
 
-INSERT INTO users (name, email, password, active) VALUES 
+INSERT INTO users (name, email, password, active) VALUES
     ('Claudia', 'claudia@dummy.test', 'password', TRUE),
     ('Napoleon', 'napoleon@dummy.test', 'password', TRUE),
     ('San Martin', 'martin@dummy.test', 'password', FALSE),

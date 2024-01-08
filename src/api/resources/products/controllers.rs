@@ -55,7 +55,7 @@ pub fn remove_product(req: &mut Request, _depot: &mut Depot, res: &mut Response)
             Ok(total_deleted) => match total_deleted {
                 0 => api_errors::render_resource_not_found(res, "product"),
 
-                _other => api_responses::render_resource_deleted(res, total_deleted)
+                _other => api_responses::render_db_execution(res, total_deleted)
             }
         }
     }
@@ -90,17 +90,21 @@ fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, api
     use api_errors::Error::{FieldNotFound, ParseFloatErr};
 
     let name = form_data.fields.get("name")
+        .map(|n| n.to_string())
         .ok_or(FieldNotFound("name"))?;
 
     let description = form_data.fields.get("description")
         .map(|d| d.to_string());
+
+    let url = form_data.fields.get("url")
+        .map(|u| u.to_string());
 
     let price: f32 = form_data.fields.get("price")
         .ok_or(FieldNotFound("price"))?
         .parse()
         .map_err(|_| ParseFloatErr("price"))?;
 
-    let new_product = NewProduct { name, description, price, available: false };
+    let new_product = NewProduct { name, description, url, price, available: false };
 
     Ok(new_product)
 }

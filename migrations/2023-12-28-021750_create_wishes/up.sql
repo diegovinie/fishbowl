@@ -5,7 +5,7 @@ CREATE TABLE wishes (
     product_id INTEGER NOT NULL REFERENCES products(id)
 );
 
-INSERT INTO wishes (wishlist_id, product_id) VALUES
-    (1, 1),
-    (1, 2),
-    (1, 3);
+-- INSERT INTO wishes (wishlist_id, product_id) VALUES
+--     (1, 1),
+--     (1, 2),
+--     (1, 3);

@@ -29,15 +29,15 @@ pub fn render_resource_created<T: Serialize + Send>(res: &mut Response, resource
     res.render(Json(ResourceResponse::<T> { data: resource }));
 }
 
-pub fn render_resource_deleted(res: &mut Response, total_deleted: usize) {
-    match total_deleted {
+pub fn render_db_execution(res: &mut Response, total: usize) {
+    match total {
         1 => {
             res.status_code(StatusCode::ACCEPTED);
         },
         _other => {
             res.status_code(StatusCode::ACCEPTED);
             res.render(Json(ExecutionResponse {
-                message: format!("Total deleted: {}", total_deleted)
+                message: format!("Total row affected: {}", total)
             }));
         }
     }

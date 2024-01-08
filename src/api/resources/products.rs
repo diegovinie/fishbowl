@@ -1,6 +1,6 @@
 pub mod models;
 mod controllers;
-mod repo;
+pub mod repo;
 
 use salvo::prelude::*;
 // use crate::api::auth;

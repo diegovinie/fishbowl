@@ -105,7 +105,7 @@ pub fn delete_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response)
             Ok(total_deleted) => match total_deleted {
                 0 => api_errors::render_resource_not_found(res, "wishlist"),
 
-                _other => api_responses::render_resource_deleted(res, total_deleted),
+                _other => api_responses::render_db_execution(res, total_deleted),
             },
         },
     }

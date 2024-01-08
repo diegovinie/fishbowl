@@ -44,3 +44,11 @@ pub fn delete_product(id: i32) -> Result<usize, Error> {
     diesel::delete(products_table.find(id))
         .execute(conn)
 }
+
+pub fn insert_batch(products: Vec<NewProduct>) -> Result<usize, Error> {
+    let conn = &mut db::establish_connection();
+
+    diesel::insert_into(products_table)
+        .values(products)
+        .execute(conn)
+}

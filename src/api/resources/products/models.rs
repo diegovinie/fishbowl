@@ -1,6 +1,7 @@
 use diesel::prelude::*;
 use serde::Serialize;
 use salvo::http::form::FormData;
+use crate::api::admin::controllers::ProductBatch;
 use crate::schema::products;
 use crate::models::Updatable;
 
@@ -20,9 +21,20 @@ pub struct Product {
 #[derive(Debug)]
 #[derive(Insertable)]
 #[diesel(table_name = products)]
+pub struct NewProduct {
+    pub name: String,
     pub description: Option<String>,
+    pub url: Option<String>,
     pub available: bool,
     pub price: f32,
+}
+
+impl NewProduct {
+    pub fn from(product: ProductBatch) -> Self {
+        let ProductBatch { name, description, url, price } = product;
+
+        Self { name, price, url, description, available: true }
+    }
 }
 
 impl Updatable for Product {
