@@ -1,16 +1,30 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
+use crate::api::utils::pagination::Pagination;
 use crate::api::{utils, responses as api_responses, errors as api_errors};
 use crate::models::Updatable;
 use super::models::NewProduct;
 use super::repo;
 
 #[handler]
-pub fn list_products(_req: &mut Request, _depot: &mut Depot, res: &mut Response) {
-    match repo::list_products() {
-        Err(error) => api_errors::render_db_retrieving_error(res, error, "products"),
+pub fn list_products(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+    match req.query::<i64>("per_page") {
+        None => match repo::list_products() {
+            Err(error) => api_errors::render_db_retrieving_error(res, error, "products"),
 
-        Ok(products) => api_responses::render_collection(res, products)
+            Ok(products) => api_responses::render_collection(res, products)
+        },
+
+        Some(per_page) => {
+            let page = req.query::<i64>("page").unwrap_or(1);
+
+            match repo::list_products_paginate(page, per_page) {
+                Err(error) => api_errors::render_db_retrieving_error(res, error, "products"),
+
+                Ok((entries, products)) =>
+                    api_responses::render_collection_paginated(res, products, Pagination::new(page, per_page, entries)),
+            }
+        }
     }
 }
 

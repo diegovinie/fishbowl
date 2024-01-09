@@ -1,5 +1,6 @@
 use diesel::prelude::*;
 use crate::db;
+use crate::api::utils::pagination::Paginate;
 use crate::schema::products::table as products_table;
 use super::models::{Product, NewProduct, ListedProduct};
 use diesel::result::Error;
@@ -19,6 +20,20 @@ pub fn list_products() -> Result<Vec<ListedProduct>, Error> {
     products_table
         .select(ListedProduct::as_select())
         .load(conn)
+}
+
+pub fn list_products_paginate(page: i64, per_page: i64) -> Result<(i64, Vec<Product>), Error> {
+    let conn = &mut db::establish_connection();
+
+    let results: Vec<(Product, i64)> = products_table.into_boxed()
+        .paginate(page)
+        .per_page(per_page)
+        .get_results(conn)?;
+
+    match results.first() {
+        None => Ok((0, vec![])),
+        Some((_, entries)) => Ok((*entries, results.into_iter().map(|(p, _)| p).collect()))
+    }
 }
 
 pub fn insert_product(new_product: NewProduct) -> Result<Product, Error> {

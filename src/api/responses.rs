@@ -1,5 +1,6 @@
 use salvo::prelude::*;
 use serde::Serialize;
+use super::utils::pagination::Pagination;
 
 #[derive(Serialize)]
 struct ResourceResponse<T> {
@@ -9,6 +10,12 @@ struct ResourceResponse<T> {
 #[derive(Serialize)]
 struct CollectionResponse<T> {
     data: Vec<T>,
+}
+
+#[derive(Serialize)]
+struct CollectionPaginatedResponse<T> {
+    data: Vec<T>,
+    pagination: Pagination,
 }
 
 #[derive(Serialize)]
@@ -22,6 +29,10 @@ pub fn render_resource<T: Serialize + Send>(res: &mut Response, resource: T) {
 
 pub fn render_collection<T: Serialize + Send>(res: &mut Response, collection: Vec<T>) {
     res.render(Json(CollectionResponse::<T> { data: collection }));
+}
+
+pub fn render_collection_paginated<T: Serialize + Send>(res: &mut Response, collection: Vec<T>, pagination: Pagination)  {
+    res.render(Json(CollectionPaginatedResponse::<T> { data: collection, pagination }));
 }
 
 pub fn render_resource_created<T: Serialize + Send>(res: &mut Response, resource: T) {

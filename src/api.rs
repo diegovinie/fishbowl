@@ -3,28 +3,7 @@ pub mod errors;
 pub mod resources;
 pub mod responses;
 pub mod admin;
-
-pub mod utils {
-    use salvo::prelude::*;
-    use std::str::FromStr;
-    use super::auth::JwtClaims;
-
-    pub fn get_req_param<T: FromStr>(req: &Request, param: &str) -> Result<T, T::Err> {
-        req.params()
-            .get(param)
-            .cloned()
-            .unwrap_or_default()
-            .parse()
-    }
-
-    pub fn get_user_id(depot: &mut Depot) -> Option<i32> {
-        match depot.jwt_auth_data::<JwtClaims>() {
-            None => None,
-            Some(data) => Some(data.claims.id),
-        }
-    }
-}
-
+pub mod utils;
 
 pub mod users {
     pub mod models {use diesel::prelude::*;
