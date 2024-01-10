@@ -7,9 +7,7 @@
 
 INSERT INTO users (name, email, password, active) VALUES
     ('Claudia', 'claudia@dummy.test', 'password', TRUE),
-    ('Napoleon', 'napoleon@dummy.test', 'password', TRUE),
-    ('San Martin', 'martin@dummy.test', 'password', FALSE),
-    ('Madonna', 'madona@dummy.test', 'password', FALSE);
+    ('Napoleon', 'napoleon@dummy.test', 'password', TRUE);
 
 INSERT INTO wishlists (title, description, date, user_id, published) VALUES
     ('Mi boda', 'Esta es mi boda', '2024-03-17 20:38:16', 1, TRUE),
