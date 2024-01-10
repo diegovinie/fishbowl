@@ -1,0 +1,42 @@
+name,email,password,active
+Cristian Romero,user1@dummy.test,Test@123,true
+Nicolás Otamendi,user2@dummy.test,Test@123,true
+Germán Pezzella,user3@dummy.test,Test@123,true
+Nicolás Tagliafico,user4@dummy.test,Test@123,true
+Marcos Acuña,user5@dummy.test,Test@123,true
+Nahuel Molina,user6@dummy.test,Test@123,true
+Lucas Martínez Quarta,user7@dummy.test,Test@123,true
+Pablo Maffeo,user8@dummy.test,Test@123,true
+Gonzalo Montiel,user9@dummy.test,Test@123,true
+Francisco Ortega,user10@dummy.test,Test@123,true
+Alba Cárdenas,user11@dummy.test,Test@123,true
+Martha Almenar,user12@dummy.test,Test@123,true
+Thamara Leal,user13@dummy.test,Test@123,true
+María Mercedes Zambrano,user14@dummy.test,Test@123,true
+Jovann Navas,user15@dummy.test,Test@123,true
+Maritza Bruzsasco,user16@dummy.test,Test@123,true
+Marydeé Sierraalta,user17@dummy.test,Test@123,true
+Hilda Carrero,user18@dummy.test,Test@123,true
+Neyla Moronta,user19@dummy.test,Test@123,true
+Maritzabel Gruber,user20@dummy.test,Test@123,true
+Elluz Peraza,user21@dummy.test,Test@123,true
+Ángel Di María,user22@dummy.test,Test@123,false
+Leandro Paredes,user23@dummy.test,Test@123,false
+Lucas Ocampos,user24@dummy.test,Test@123,false
+Rodrigo De Paul,user25@dummy.test,Test@123,false
+Giovani Lo Celso,user26@dummy.test,Test@123,false
+Guido Rodríguez,user27@dummy.test,Test@123,false
+Exequiel Palacios,user28@dummy.test,Test@123,false
+Alexis Mac Allister,user29@dummy.test,Test@123,false
+Enzo Fernández,user30@dummy.test,Test@123,false
+Christina Dieckmann Jiménez,user31@dummy.test,Test@123,false
+Mayela Mora Pinto,user32@dummy.test,Test@123,false
+Martina Thorogood Heemsen,user33@dummy.test,Test@123,false
+Eva Mónica Anna Ekvall Johnson,user34@dummy.test,Test@123,false
+Jerika Hoffman Leal,user35@dummy.test,Test@123,false
+María Fernanda León,user36@dummy.test,Test@123,false
+Valentina Patruno,user37@dummy.test,Test@123,false
+Inmary Rodríguez Boscán,user38@dummy.test,Test@123,false
+Marianne Puglia Martínez,user39@dummy.test,Test@123,false
+Joshil Morales Arenas,user40@dummy.test,Test@123,false
+Mónica Bsereni Hadad,user41@dummy.test,Test@123,false
