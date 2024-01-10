@@ -4,7 +4,7 @@ use salvo::http::form::FormData;
 use crate::schema::wishlists;
 use crate::api::resources::wishes::models::WishProduct;
 use std::time::SystemTime;
-use crate::api::users::models::User;
+use crate::api::resources::users::models::User;
 use crate::models::{Updatable, Composable};
 
 #[derive(

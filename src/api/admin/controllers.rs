@@ -3,7 +3,7 @@ use salvo::prelude::*;
 use std::error::Error;
 use serde::Deserialize;
 use crate::api::{errors as api_errors, responses as api_responses};
-use crate::api::users::models::NewUser;
+use crate::api::resources::users::models::NewUser;
 use crate::api::resources::products::models::NewProduct;
 
 static USERS_CSV_FILE: &str = "data/users.csv";
@@ -43,7 +43,7 @@ impl Into<NewProduct> for ProductBatch {
 
 #[handler]
 pub fn populate_users(res: &mut Response) {
-    use crate::api::users::repo::insert_batch;
+    use crate::api::resources::users::repo::insert_batch;
 
     match parse_users_csv() {
         Err(error) => api_errors::render_parse_field_error(res, error, "users.csv"),
