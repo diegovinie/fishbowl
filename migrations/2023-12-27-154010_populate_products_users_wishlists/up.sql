@@ -11,4 +11,5 @@ INSERT INTO users (name, email, password, active) VALUES
 
 INSERT INTO wishlists (title, description, date, user_id, published) VALUES
     ('Mi boda', 'Esta es mi boda', '2024-03-17 20:38:16', 1, TRUE),
-    ('Babyshower de Maria', null, null, 2, FALSE);
+    ('Babyshower de Maria', null, null, 2, TRUE),
+    ('Draft de mi boda', 'TODO', null, 1, FALSE);

@@ -1,4 +1,5 @@
 use diesel::prelude::*;
+use crate::api::utils::pagination::Paginate;
 use crate::db;
 use crate::schema::wishlists::table as wishlists_table;
 use super::models::DetailedWishlist;
@@ -27,7 +28,36 @@ pub fn find_detailed_wishlist(id: i32, user_id: i32) -> Result<DetailedWishlist,
     Ok(DetailedWishlist::compose(wishlist, wishes))
 }
 
-pub fn list_wishlists(user_id: i32) -> Result<Vec<ListedWishlist>, Error> {
+pub fn list_wishlists() -> Result<Vec<ListedWishlist>, Error> {
+    let conn = &mut db::establish_connection();
+
+    wishlists_table
+        .filter(wishlist_schema::published.eq(true))
+        .select(ListedWishlist::as_select())
+        .load(conn)
+}
+
+pub fn list_wishlists_paginate(page: i64, per_page: i64) -> Result<(i64, Vec<ListedWishlist>), Error> {
+    let conn = &mut db::establish_connection();
+
+    let results: Vec<(Wishlist, i64)> = wishlists_table
+        .filter(wishlist_schema::published.eq(true))
+        .paginate(page)
+        .per_page(per_page)
+        .get_results(conn)?;
+
+        match results.first() {
+            None => Ok((0, vec![])),
+            Some((_, entries)) => Ok((
+                *entries, 
+                results.into_iter()
+                    .map(|(w, _)| ListedWishlist::from(w))
+                    .collect())
+                )
+    }
+}
+
+pub fn list_user_wishlists(user_id: i32) -> Result<Vec<ListedWishlist>, Error> {
     let conn = &mut db::establish_connection();
 
     wishlists_table

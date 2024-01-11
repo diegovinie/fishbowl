@@ -1,17 +1,35 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
 use crate::api::auth::JwtClaims;
+use crate::api::utils::pagination::Pagination;
 use crate::api::{errors as api_errors, responses as api_responses, utils};
 use crate::models::Updatable;
 use super::models::NewWishlist;
 use super::repo;
 
 #[handler]
-pub fn list_wishlist(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
+pub fn list_wishlists(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+    match req.query::<i64>("per_page") {
+        None => todo!(),
+        Some(per_page) => {
+            let page = req.query::<i64>("page").unwrap_or(1);
+
+            match repo::list_wishlists_paginate(page, per_page) {
+                Err(error) => api_errors::render_db_retrieving_error(res, error, "wishlists"),
+
+                Ok((entries, wishlists)) => 
+                    api_responses::render_collection_paginated(res, wishlists, Pagination::new(page, per_page, entries))
+            }
+        }
+    }
+}
+
+#[handler]
+pub fn list_user_wishlists(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
     match utils::get_user_id(depot) {
         None => api_errors::render_get_user_id_not_found(res),
 
-        Some(user_id) => match repo::list_wishlists(user_id) {
+        Some(user_id) => match repo::list_user_wishlists(user_id) {
             Err(error) => api_errors::render_db_retrieving_error(res, error, "wishlists"),
 
             Ok(wishlists) => api_responses::render_collection(res, wishlists),

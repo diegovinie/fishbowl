@@ -65,6 +65,14 @@ pub struct ListedWishlist {
     pub date: Option<SystemTime>,
 }
 
+impl From<Wishlist> for ListedWishlist {
+    fn from(wishlist: Wishlist) -> Self {
+        let Wishlist { id, title, date, .. } = wishlist;
+
+        Self { id, title, date }
+    }
+}
+
 #[derive(Serialize)]
 pub struct DetailedWishlist {
     pub id: i32,
