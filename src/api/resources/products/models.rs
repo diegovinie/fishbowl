@@ -58,3 +58,11 @@ pub struct ListedProduct {
     pub price: f32,
     pub available: bool,
 }
+
+impl From<Product> for ListedProduct {
+    fn from(value: Product) -> Self {
+        let Product { id, name, price, available, .. } = value;
+
+        Self { id, name, price, available }
+    }
+}
