@@ -26,6 +26,7 @@ diesel::table! {
         id -> Int4,
         name -> Varchar,
         email -> Text,
+        role -> Varchar,
         password -> Text,
         active -> Bool,
     }

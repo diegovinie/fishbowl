@@ -5,9 +5,9 @@
 --     ('Cuna ACME', 'La mejor cuna', null, 250000),
 --     ('Licuadora Oster', 'La mejor cuna', 'https://t.ly/eKctR', 234900);
 
-INSERT INTO users (name, email, password, active) VALUES
-    ('Claudia', 'claudia@dummy.test', 'password', TRUE),
-    ('Napoleon', 'napoleon@dummy.test', 'password', TRUE);
+INSERT INTO users (name, email, password, role, active) VALUES
+    ('Claudia', 'claudia@dummy.test', 'password', 'ADMIN', TRUE),
+    ('Napoleon', 'napoleon@dummy.test', 'password', 'ADMIN', TRUE);
 
 INSERT INTO wishlists (title, description, date, user_id, published) VALUES
     ('Mi boda', 'Esta es mi boda', '2024-03-17 20:38:16', 1, TRUE),
