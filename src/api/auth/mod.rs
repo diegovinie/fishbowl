@@ -8,6 +8,7 @@ use salvo::jwt_auth::{ConstDecoder, QueryFinder, HeaderFinder};
 use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, Duration};
 use crate::api::errors as api_errors;
+use crate::models::Role;
 use self::models::User;
 
 const SECRET_KEY: &str = "YOUR SECRET_KEY";
@@ -15,7 +16,7 @@ const SECRET_KEY: &str = "YOUR SECRET_KEY";
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JwtClaims {
     pub username: String,
-    pub role: String,
+    pub role: Role,
     pub id: i32,
     exp: i64,
 }
@@ -85,7 +86,7 @@ fn create_token(user: User) -> Result<String, jsonwebtoken::errors::Error> {
     let claims = JwtClaims {
         username,
         id,
-        role,
+        role: Role::from(role.as_str()),
         exp: exp.unix_timestamp(),
     };
 

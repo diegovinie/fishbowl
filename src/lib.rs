@@ -21,6 +21,7 @@ pub mod db {
 
 pub mod models {
     use salvo::http::form::FormData;
+    use serde::{Deserialize, Serialize};
 
     pub trait Updatable {
         fn merge(&self, form_data: &FormData) -> Self;
@@ -28,5 +29,21 @@ pub mod models {
 
     pub trait Composable<T, G> {
         fn compose(tree: T, branch: G) -> Self;
+    }
+
+
+    #[derive(Deserialize, Serialize, Debug)]
+    pub enum Role {
+        Admin,
+        User,
+    }
+
+    impl<'a> From<&'a str> for Role {
+        fn from(value: &'a str) -> Self {
+            match value {
+                "ADMIN" => Role::Admin,
+                _other => Role::User,
+            }
+        }
     }
 }
