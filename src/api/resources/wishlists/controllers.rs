@@ -10,14 +10,18 @@ use super::repo;
 #[handler]
 pub fn list_wishlists(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
     match req.query::<i64>("per_page") {
-        None => todo!(),
+        None => match repo::list_wishlists() {
+            Err(_) => api_errors::render_resource_not_found(res, "wishlist"),
+
+            Ok(wishlists) => api_responses::render_collection(res, wishlists),
+        },
         Some(per_page) => {
             let page = req.query::<i64>("page").unwrap_or(1);
 
             match repo::list_wishlists_paginate(page, per_page) {
                 Err(error) => api_errors::render_db_retrieving_error(res, error, "wishlists"),
 
-                Ok((entries, wishlists)) => 
+                Ok((entries, wishlists)) =>
                     api_responses::render_collection_paginated(res, wishlists, Pagination::new(page, per_page, entries))
             }
         }
