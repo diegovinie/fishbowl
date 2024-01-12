@@ -65,6 +65,11 @@ pub fn render_inconsistency_error(res: &mut Response, value: impl Display) {
     res.render(json(format!("Error: `{value}` is not consistent")));
 }
 
+pub fn render_unauthorized(res: &mut Response) {
+    res.status_code(StatusCode::UNAUTHORIZED);
+    res.render(json(format!("Not enough privileges")));
+}
+
 pub fn render_db_resource_not_associated(res: &mut Response, resource: impl Display) {
     res.status_code(StatusCode::FORBIDDEN);
     res.render(json(format!("Error: `user` not associated to `{resource}`")));

@@ -2,7 +2,7 @@ use std::env;
 use salvo::prelude::*;
 use std::error::Error;
 use serde::Deserialize;
-use crate::api::{errors as api_errors, responses as api_responses};
+use crate::api::{errors as api_errors, responses as api_responses, utils};
 use crate::api::resources::users::models::NewUser;
 use crate::api::resources::products::models::NewProduct;
 
@@ -42,7 +42,14 @@ impl Into<NewProduct> for ProductBatch {
 }
 
 #[handler]
-pub fn populate_users(res: &mut Response) {
+pub fn check_admin_role(depot: &Depot, res: &mut Response) {
+    if !utils::admin(depot) {
+        return api_errors::render_unauthorized(res);
+    }
+}
+
+#[handler]
+pub fn populate_users(_depot: &Depot, res: &mut Response) {
     use crate::api::resources::users::repo::insert_batch;
 
     match parse_users_csv() {

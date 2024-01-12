@@ -32,7 +32,7 @@ pub mod models {
     }
 
 
-    #[derive(Deserialize, Serialize, Debug)]
+    #[derive(Deserialize, Serialize, Debug, Copy, Clone)]
     pub enum Role {
         Admin,
         User,
