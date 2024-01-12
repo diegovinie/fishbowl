@@ -1,4 +1,4 @@
-import type { ApiResponse, ListedProduct, Wish } from '@/interfaces';
+import type { ApiResponse, ListedProduct, Wish, Authentication } from '@/interfaces';
 import axios, { AxiosError, type AxiosResponse } from 'axios';
 
 export const client = axios.create({
@@ -58,9 +58,11 @@ export const auth = {
     formData.append('email', email);
     formData.append('password', password);
 
-    return client.post('auth', formData)
+    return client.post<FormData, ApiResponse<Authentication>>('auth', formData)
       .then((res) => {
-        setAuthToken(res.data);
+        const { auth_token } = res.data;
+
+        setAuthToken(auth_token);
       });
   },
 

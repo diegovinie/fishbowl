@@ -30,3 +30,16 @@ export interface ListedWishlist {
 export interface ApiResponse<T> {
   data: T,
 }
+
+export interface Authentication {
+  auth_token: string,
+  user: User,
+}
+
+export interface User {
+  id: number,
+  name: string,
+  email: string,
+  role: string,
+  active: boolean,
+}

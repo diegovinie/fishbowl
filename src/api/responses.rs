@@ -1,6 +1,7 @@
 use salvo::prelude::*;
 use serde::Serialize;
 use super::utils::pagination::Pagination;
+use crate::api::resources::users::models::User;
 
 #[derive(Serialize)]
 struct ResourceResponse<T> {
@@ -21,6 +22,12 @@ struct CollectionPaginatedResponse<T> {
 #[derive(Serialize)]
 struct ExecutionResponse {
     message: String,
+}
+
+#[derive(Serialize)]
+struct AuthenticationResponse {
+    auth_token: String,
+    user: User,
 }
 
 pub fn render_resource<T: Serialize + Send>(res: &mut Response, resource: T) {
@@ -57,4 +64,9 @@ pub fn render_db_execution(res: &mut Response, total: usize) {
 pub fn render_resource_updated<T: Serialize + Send>(res: &mut Response, resource: T) {
     res.status_code(StatusCode::ACCEPTED);
     res.render(Json(ResourceResponse::<T> { data: resource }));
+}
+
+pub fn render_authentication(res: &mut Response, user: User, auth_token: String) {
+    res.status_code(StatusCode::ACCEPTED);
+    res.render(Json(AuthenticationResponse { auth_token, user }));
 }

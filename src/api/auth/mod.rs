@@ -1,4 +1,4 @@
-mod models;
+pub mod models;
 mod repo;
 
 use jsonwebtoken::EncodingKey;
@@ -10,6 +10,7 @@ use time::{OffsetDateTime, Duration};
 use crate::api::errors as api_errors;
 use crate::models::Role;
 use self::models::User;
+use crate::api::responses;
 
 const SECRET_KEY: &str = "YOUR SECRET_KEY";
 
@@ -41,12 +42,10 @@ pub async fn authenticate(req: &mut Request, _depot: &mut Depot, res: &mut Respo
             Ok((email_candidate, password_candidate)) => match repo::validate(email_candidate, password_candidate) {
                 None => api_errors::render_auth_validation_none(res),
 
-                Some(user) => match create_token(user) {
+                Some(user) => match create_token(user.clone()) {
                     Err(error) => api_errors::render_auth_create_token_error(res, error),
 
-                    Ok(token) => {
-                        res.render(token);
-                    }
+                    Ok(token) => responses::render_authentication(res, user.into(), token),
                 }
             },
         },
