@@ -1,6 +1,7 @@
 pub mod schema;
 pub mod api;
 pub mod home;
+pub mod cli;
 
 use dotenvy::dotenv;
 use salvo::prelude::*;
