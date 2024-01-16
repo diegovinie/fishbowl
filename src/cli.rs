@@ -1,10 +1,11 @@
 use std::process;
 use super::{start_server, Config};
-use crate::api::admin::controllers::{parse_products_csv, parse_users_csv};
+use crate::api::{admin::controllers::{parse_products_csv, parse_users_csv}, resources::users::models::User};
 
 pub enum Command {
     Serve,
     Populate(PopulateTarget),
+    List(ListTarget),
     Help,
 }
 
@@ -24,6 +25,14 @@ impl Command {
                         process::exit(0);
                     },
                     Some(target) => Ok(Self::Populate(PopulateTarget::from(target)))
+                },
+
+                "list" => match args.get(2) {
+                    None => {
+                        print_list_help();
+                        process::exit(0);
+                    },
+                    Some(target) => Ok(Self::List(ListTarget::from(target)))
                 },
 
                 other_action => Err(Error { message: format!("Action: `{other_action}` not found.")}),
@@ -51,6 +60,21 @@ impl From<&String> for PopulateTarget {
     }
 }
 
+pub enum ListTarget {
+    Users,
+    Help,
+}
+
+impl From<&String> for ListTarget {
+    fn from(value: &String) -> Self {
+        match value.as_str() {
+            "users" => Self::Users,
+            "help" => Self::Help,
+            other => panic!("Target: `{other}` not found"),
+        }
+    }
+}
+
 pub struct Error {
     pub message: String,
 }
@@ -59,6 +83,7 @@ pub fn process_command(command: Command, config: Config) {
     match command {
         Command::Serve => start_server(config),
         Command::Populate(target) => populate(target),
+        Command::List(target) => list(target),
         Command::Help => print_help(),
     }
 }
@@ -69,6 +94,10 @@ fn print_help() {
 
 fn print_populate_help() {
     println!("{}", POPULATE_HELP_MESSAGE);
+}
+
+fn print_list_help() {
+    println!("{}", LIST_HELP_MESSAGE);
 }
 
 fn populate(target: PopulateTarget) {
@@ -121,6 +150,26 @@ fn populate_users() {
     }
 }
 
+fn list(target: ListTarget) {
+    use crate::api::resources::users::repo::list_all;
+
+    match target {
+        ListTarget::Users => match list_all() {
+            Err(error) => {
+                println!("{error}");
+            },
+            Ok(users) => {
+                users.iter().for_each(|user| {
+                    let User { id, name, email, role, active, .. } = user;
+
+                    println!("{id:4}  {name:30}  {email:30}  {role:10}  {active:6}");
+                });
+            }
+        }
+        ListTarget::Help => print_list_help(),
+    }
+}
+
 const HELP_MESSAGE: &str = r#"
     Commands:
 
@@ -128,12 +177,14 @@ const HELP_MESSAGE: &str = r#"
 
     populate    Run `cargo run -- populate help` for more information
 
+    list        Run `cargo run -- list help` for more information
+
     help        Show this screen
 
 "#;
 
 const POPULATE_HELP_MESSAGE: &str = r#"
-    Commands:
+    Populate command options:
 
     all         e.g. `cargo run -- populate all`
 
@@ -143,4 +194,10 @@ const POPULATE_HELP_MESSAGE: &str = r#"
 
     help        Show this screen
 
+"#;
+
+const LIST_HELP_MESSAGE: &str = r#"
+    List command options:
+
+    help        Show this screen
 "#;

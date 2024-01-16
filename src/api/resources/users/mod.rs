@@ -17,6 +17,14 @@ pub mod repo {
             .first(conn)
     }
 
+    pub fn list_all() -> Result<Vec<User>, Error> {
+        let conn = &mut db::establish_connection();
+
+        users_table
+            .select(User::as_select())
+            .load(conn)
+    }
+
     pub fn insert_batch(users: Vec<NewUser>) -> Result<usize, Error> {
         let conn = &mut db::establish_connection();
 
