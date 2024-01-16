@@ -78,7 +78,7 @@ pub fn populate_products(_req: &mut Request, res: &mut Response) {
     }
 }
 
-fn parse_users_csv() -> Result<Vec<NewUser>, Box<dyn Error>> {
+pub fn parse_users_csv() -> Result<Vec<NewUser>, Box<dyn Error>> {
     let current_dir = env::current_dir()?;
     let mut rdr = csv::Reader::from_path(current_dir.join(USERS_CSV_FILE))?;
 
@@ -92,7 +92,7 @@ fn parse_users_csv() -> Result<Vec<NewUser>, Box<dyn Error>> {
     Ok(users)
 }
 
-fn parse_products_csv() -> Result<Vec<NewProduct>, Box<dyn Error>> {
+pub fn parse_products_csv() -> Result<Vec<NewProduct>, Box<dyn Error>> {
     let current_dir = env::current_dir()?;
     let mut rdr = csv::Reader::from_path(current_dir.join(PRODUCTS_CSV_FILE))?;
 
