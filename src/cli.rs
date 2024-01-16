@@ -8,6 +8,30 @@ pub enum Command {
     Help,
 }
 
+impl Command {
+    pub fn build(args: &[String]) -> Result<Self, Error> {
+        match args.get(1) {
+            None => Ok(Self::Help),
+
+            Some(action) => match action.as_str() {
+                "serve" => Ok(Self::Serve),
+
+                "help" => Ok(Self ::Help),
+
+                "populate" => match args.get(2) {
+                    None => {
+                        print_populate_help();
+                        process::exit(0);
+                    },
+                    Some(target) => Ok(Self::Populate(PopulateTarget::from(target)))
+                },
+
+                other_action => Err(Error { message: format!("Action: `{other_action}` not found.")}),
+            }
+        }
+    }
+}
+
 pub enum PopulateTarget {
     All,
     Products,
@@ -31,43 +55,8 @@ pub struct Error {
     pub message: String,
 }
 
-pub struct CommandOptions {
-    pub command: Command,
-}
-
-impl CommandOptions {
-    pub fn build(args: &[String]) -> Result<Self, Error> {
-        match args.get(1) {
-            None => Ok(CommandOptions{ command: Command::Help }),
-
-            Some(action) => match action.as_str() {
-                "serve" => Ok(Self {
-                    command: Command::Serve
-                }),
-
-                "help" => Ok(Self {
-                    command: Command::Help
-                }),
-
-                "populate" => match args.get(2) {
-                    None => {
-                        print_populate_help();
-                        process::exit(0);
-                    },
-                    Some(target) => Ok(Self {
-                        command: Command::Populate(PopulateTarget::from(target))
-                    })
-                },
-
-                other_action => Err(Error { message: format!("Action: `{other_action}` not found.")}),
-            }
-        }
-    }
-}
-
-
-pub fn process_command(command_options: CommandOptions, config: Config) {
-    match command_options.command {
+pub fn process_command(command: Command, config: Config) {
+    match command {
         Command::Serve => start_server(config),
         Command::Populate(target) => populate(target),
         Command::Help => print_help(),
