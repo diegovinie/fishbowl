@@ -3,7 +3,6 @@ pub mod api;
 pub mod home;
 pub mod cli;
 
-use dotenvy::dotenv;
 use salvo::prelude::*;
 use api::auth;
 use home::home_controller;
@@ -15,12 +14,9 @@ use std::env;
 pub mod db {
     use diesel::pg::PgConnection;
     use diesel::prelude::*;
-    use dotenvy::dotenv;
     use std::env;
 
     pub fn establish_connection() -> PgConnection {
-        dotenv().ok();
-
         let database_url = env::var("DATABASE_URL")
             .expect("DATABASE_URL must be set");
 
@@ -66,8 +62,6 @@ pub struct Config {
 
 impl Config {
     pub fn build() -> Self {
-        dotenv().ok();
-
         let domain = env::var("DOMAIN").expect("`DOMAIN` must be set");
         let port = env::var("PORT").expect("`PORT` must be set");
         let client_url = env::var("CLIENT_URL").expect("`CLIENT_URL` must be set");
