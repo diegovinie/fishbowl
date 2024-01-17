@@ -1,9 +1,23 @@
 use diesel::prelude::*;
 use crate::db;
+use crate::database::{contracts::ProductRepo, establish_connection};
 use crate::api::utils::pagination::Paginate;
 use crate::schema::products::table as products_table;
 use super::models::{Product, NewProduct, ListedProduct};
 use diesel::result::Error;
+
+pub struct Repo;
+
+impl ProductRepo for Repo {
+    fn find_product(&self, id: i32) -> Result<Product, Error> {
+        let conn = &mut establish_connection();
+
+        products_table
+            .find(id)
+            .select(Product::as_select())
+            .first(conn)
+    }
+}
 
 pub fn find_product(id: i32) -> Result<Product, Error> {
     let connection = &mut db::establish_connection();
