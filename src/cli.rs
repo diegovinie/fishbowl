@@ -1,4 +1,5 @@
 use std::process;
+
 use super::{start_server, Config};
 use crate::api::{admin::controllers::{parse_products_csv, parse_users_csv}, resources::users::models::User};
 use crate::database::primary_service_injector;
@@ -83,6 +84,15 @@ pub struct Error {
 pub fn process_command(command: Command, config: Config) {
     match command {
         Command::Serve => start_server(primary_service_injector(), config),
+        // Command::Serve => {
+        //     let services = InjectableServices {
+        //         database: TestDatabaseService,
+        //     };
+
+        //     let service_injector = ServiceInjector::new(services);
+
+        //     start_server(service_injector, config)
+        // },
         Command::Populate(target) => populate(target),
         Command::List(target) => list(target),
         Command::Help => print_help(),

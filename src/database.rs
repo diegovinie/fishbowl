@@ -1,5 +1,7 @@
 pub mod contracts;
 pub mod primary_impl;
+// #[cfg(test)] 
+pub mod mocks;
 
 use salvo::prelude::*;
 use diesel::prelude::*;
@@ -19,7 +21,7 @@ pub struct ServiceInjector {
 }
 
 impl ServiceInjector {
-    fn new<D: DatabaseService + 'static>(services: InjectableServices<D>) -> Self {
+    pub fn new<D: DatabaseService + 'static>(services: InjectableServices<D>) -> Self {
         Self {
             database: Arc::new(services.database),
         }

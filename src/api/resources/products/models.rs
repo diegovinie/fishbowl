@@ -1,10 +1,10 @@
 use diesel::prelude::*;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use salvo::http::form::FormData;
 use crate::schema::products;
 use crate::models::Updatable;
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 #[derive(Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = crate::schema::products)]
 #[diesel(check_for_backend(diesel::pg::Pg))]

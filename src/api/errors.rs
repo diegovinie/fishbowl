@@ -24,9 +24,14 @@ impl Writer for ApiError {
             ApiError::Parse(error) => {
                 render_parse_field_error(res, error, "id");
             },
-            _ => {
-                res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-                res.render(make_json_response("undefined error".to_string()));
+            ApiError::Diesel(error) => match error {
+                diesel::result::Error::NotFound => {
+                    render_resource_not_found(res, "any")
+                },
+                _ => {
+                    res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+                    res.render(make_json_response("undefined error".to_string()));
+                }
             }
         }
     }

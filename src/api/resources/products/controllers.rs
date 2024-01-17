@@ -51,11 +51,11 @@ pub async fn add_product(req: &mut Request, _depot: &mut Depot, res: &mut Respon
 #[handler]
 pub fn show_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
     let repo = get_repo(depot)?;
-
+    
     let id = utils::get_req_param::<i32>(req, "id")?;
-
+    
     let product = repo.find_product(id)?;
-
+    
     api_responses::render_resource(res, product);
 
     Ok(())
