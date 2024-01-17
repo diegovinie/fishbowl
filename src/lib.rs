@@ -2,6 +2,8 @@ pub mod schema;
 pub mod api;
 pub mod home;
 pub mod cli;
+pub mod database;
+pub use database as db;
 
 use salvo::prelude::*;
 use api::auth;
@@ -10,20 +12,7 @@ use salvo::catcher::Catcher;
 use salvo::cors::Cors;
 use salvo::http::Method;
 use std::env;
-
-pub mod db {
-    use diesel::pg::PgConnection;
-    use diesel::prelude::*;
-    use std::env;
-
-    pub fn establish_connection() -> PgConnection {
-        let database_url = env::var("DATABASE_URL")
-            .expect("DATABASE_URL must be set");
-
-        PgConnection::establish(&database_url)
-            .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
-    }
-}
+use database::ServiceInjector;
 
 pub mod models {
     use salvo::http::form::FormData;
@@ -75,7 +64,7 @@ impl Config {
 }
 
 #[tokio::main]
-pub async fn start_server(config: Config) {
+pub async fn start_server(service_injector: ServiceInjector, config: Config) {
     let Config { domain, port, client_url } = config;
 
     let cors_handler = Cors::new()
@@ -85,6 +74,7 @@ pub async fn start_server(config: Config) {
         .into_handler();
 
     let router = Router::new()
+        .hoop(service_injector)
         .hoop(cors_handler.clone())
         .hoop(auth::decode_token())
         .get(home_controller)
@@ -101,3 +91,4 @@ pub async fn start_server(config: Config) {
 
     Server::new(acceptor).serve(service).await;
 }
+
