@@ -9,6 +9,7 @@
         "jsonwebtoken",
         "plpgsql",
         "regclass",
+        "thiserror",
         "wishist"
     ]
 }

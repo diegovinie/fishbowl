@@ -1,6 +1,63 @@
 use std::fmt::{Display, Debug};
 use salvo::prelude::*;
 use serde::Serialize;
+use thiserror::Error;
+use std::num::ParseIntError;
+
+#[derive(Error, Debug)]
+pub enum ApiError {
+    #[error("diesel: `{0}`")]
+    Diesel(#[from] diesel::result::Error),
+    #[error("injection: `{0}`")]
+    Injection(InjectionError),
+    #[error("parse: `{0}`")]
+    Parse(ParseIntError),
+}
+
+#[async_trait]
+impl Writer for ApiError {
+    async fn write(mut self, _req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+        match self {
+            ApiError::Injection(_details) => {
+                render_injection_error(res, "product_repo");
+            },
+            ApiError::Parse(error) => {
+                render_parse_field_error(res, error, "id");
+            },
+            _ => {
+                res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+                res.render(make_json_response("undefined error".to_string()));
+            }
+        }
+    }
+}
+
+impl From<ParseIntError> for ApiError {
+    fn from(value: ParseIntError) -> Self {
+        Self::Parse(value)
+    }
+}
+
+pub type ApiResult<T> = Result<T, ApiError>;
+
+#[derive(Debug)]
+pub struct InjectionError;
+
+impl Display for InjectionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Error getting from depot")
+    }
+}
+
+impl std::error::Error for InjectionError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        None
+    }
+
+    fn cause(&self) -> Option<&dyn std::error::Error> {
+        self.source()
+    }
+}
 
 #[derive(Debug)]
 pub enum Error<'a> {
@@ -68,6 +125,11 @@ pub fn render_inconsistency_error(res: &mut Response, value: impl Display) {
 pub fn render_unauthorized(res: &mut Response) {
     res.status_code(StatusCode::UNAUTHORIZED);
     res.render(json(format!("Not enough privileges")));
+}
+
+pub fn render_injection_error(res: &mut Response, value: impl Display) {
+    res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+    res.render(json(format!("Error: getting `{value}` from depot")));
 }
 
 pub fn render_db_resource_not_associated(res: &mut Response, resource: impl Display) {

@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use salvo::prelude::*;
 use salvo::http::form::FormData;
+use crate::api::errors::ApiResult;
 use crate::api::utils::pagination::Pagination;
 use crate::api::{utils, responses as api_responses, errors as api_errors};
 use crate::database::contracts::{DatabaseService, ProductRepo};
@@ -48,18 +49,16 @@ pub async fn add_product(req: &mut Request, _depot: &mut Depot, res: &mut Respon
 }
 
 #[handler]
-pub fn show_product(req: &Request, depot: &Depot, res: &mut Response) {
-    let repo = get_repo(depot);
+pub fn show_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
+    let repo = get_repo(depot)?;
 
-    match utils::get_req_param::<i32>(req, "id") {
-        Err(error) => api_errors::render_parse_field_error(res, error, "id"),
+    let id = utils::get_req_param::<i32>(req, "id")?;
 
-        Ok(id) => match repo.find_product(id) {
-            Err(_) => api_errors::render_resource_not_found(res, "product"),
+    let product = repo.find_product(id)?;
 
-            Ok(product) => api_responses::render_resource(res, product)
-        }
-    }
+    api_responses::render_resource(res, product);
+
+    Ok(())
 }
 
 #[handler]
@@ -127,9 +126,11 @@ fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, api
     Ok(new_product)
 }
 
-fn get_repo(depot: &Depot) -> Box<dyn ProductRepo> {
-    let service = depot.obtain::<Arc<dyn DatabaseService>>()
-        .expect("Error getting product_repo");
+fn get_repo(depot: &Depot) -> ApiResult<Box<dyn ProductRepo>> {
+    use crate::api::errors::{ApiError, InjectionError};
 
-    service.clone().product_repo()
+    let service = depot.obtain::<Arc<dyn DatabaseService>>()
+        .map_err(|_| ApiError::Injection(InjectionError))?;
+
+    Ok(service.clone().product_repo())
 }
