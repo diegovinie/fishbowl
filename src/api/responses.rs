@@ -1,11 +1,11 @@
 use salvo::prelude::*;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use super::utils::pagination::Pagination;
 use crate::api::resources::users::models::User;
 
-#[derive(Serialize)]
-struct ResourceResponse<T> {
-    data: T,
+#[derive(Serialize, Deserialize)]
+pub struct ResourceResponse<T> {
+    pub data: T,
 }
 
 #[derive(Serialize)]

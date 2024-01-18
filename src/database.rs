@@ -1,7 +1,5 @@
 pub mod contracts;
 pub mod primary_impl;
-// #[cfg(test)] 
-pub mod mocks;
 
 use salvo::prelude::*;
 use diesel::prelude::*;
