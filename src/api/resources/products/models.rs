@@ -17,7 +17,7 @@ pub struct Product {
     pub available: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, PartialOrd)]
 #[derive(Insertable)]
 #[diesel(table_name = products)]
 pub struct NewProduct {

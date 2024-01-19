@@ -117,6 +117,7 @@ fn prepare_target(service_data: ServiceData) -> Service {
 }
 
 pub mod products {
+    use std::collections::HashMap;
     use salvo::prelude::*;
     use salvo::test::{ResponseExt, TestClient};
     use fishbowl::api::resources::products::models::{Product, ListedProduct};
@@ -124,16 +125,45 @@ pub mod products {
     use super::ServiceData;
     use super::{prepare_target,  BASE_URL};
 
-    #[tokio::test]
-    async fn find_product() {
-        let product1 = Product {
+    fn test_products() -> HashMap<String, Product> {
+        let mut map = HashMap::new();
+        map.insert("product1".to_string(), Product {
             id: 1,
-            name: format!("product"),
+            name: format!("product 1"),
             description: Some(format!("desc")),
             url: Some(format!("any url")),
             price: 34000.6,
             available: true
-        };
+
+        });
+
+        map.insert("product2".to_string(), Product {
+            id: 2,
+            name: format!("product 2"),
+            description: Some(format!("desc for 2")),
+            url: None,
+            price: 120000.6,
+            available: true
+        });
+
+        map.insert("product3".to_string(), Product {
+            id: 3,
+            name: format!("product 3"),
+            description: None,
+            url: Some(format!("any url")),
+            price: 34000.0,
+            available: false
+        });
+
+        map
+    }
+
+    #[tokio::test]
+    async fn find_product() {
+        // -- setup
+
+        let test_products = test_products();
+        let product1 = test_products.get("product1").unwrap();
 
         let service_data = ServiceData {
             users: vec![],
@@ -142,6 +172,8 @@ pub mod products {
 
         let target = prepare_target(service_data);
 
+        // -- run 1
+
         let existing_product_res = TestClient::get(format!("{BASE_URL}/api/v1/products/1"))
             .send(&target)
             .await
@@ -149,7 +181,11 @@ pub mod products {
             .await
             .unwrap();
 
-        assert_eq!(existing_product_res.data, product1);
+        // -- assert 1
+
+        assert_eq!(existing_product_res.data, product1.clone(), "find product by id");
+
+        // -- run 2
 
         let not_found_product_status_code = TestClient::get(format!("{BASE_URL}/api/v1/products/2"))
             .send(&target)
@@ -157,7 +193,11 @@ pub mod products {
             .status_code
             .unwrap();
 
-        assert_eq!(not_found_product_status_code, StatusCode::NOT_FOUND);
+        // -- assert 2
+
+        assert_eq!(not_found_product_status_code, StatusCode::NOT_FOUND, "not found status code");
+
+        // -- run 3
 
         let wrong_param_status_code = TestClient::get(format!("{BASE_URL}/api/v1/products/letter"))
             .send(&target)
@@ -165,39 +205,19 @@ pub mod products {
             .status_code
             .unwrap();
 
-        assert_eq!(wrong_param_status_code, StatusCode::BAD_REQUEST);
+        // -- assert 3
+
+        assert_eq!(wrong_param_status_code, StatusCode::BAD_REQUEST, "incorrect id param status code");
     }
 
     #[tokio::test]
     async fn list_products() {
-        dotenvy::dotenv().ok();
+        // -- setup
 
-        let product1 = Product {
-            id: 1,
-            name: format!("product1"),
-            description: Some(format!("desc")),
-            url: Some(format!("any url")),
-            price: 34000.6,
-            available: true
-        };
-
-        let product2 = Product {
-            id: 2,
-            name: format!("product2"),
-            description: Some(format!("desc for 2")),
-            url: None,
-            price: 120000.6,
-            available: true
-        };
-
-        let product3 = Product {
-            id: 3,
-            name: format!("product 3"),
-            description: None,
-            url: Some(format!("any url")),
-            price: 34000.0,
-            available: false
-        };
+        let test_products = test_products();
+        let product1 = test_products.get("product1").unwrap();
+        let product2 = test_products.get("product2").unwrap();
+        let product3 = test_products.get("product3").unwrap();
 
         let service_data = ServiceData {
             users: vec![],
@@ -210,6 +230,8 @@ pub mod products {
 
         let target = prepare_target(service_data.clone());
 
+        // -- run 1
+
         let product_list_res = TestClient::get(format!("{BASE_URL}/api/v1/products"))
             .send(&target)
             .await
@@ -220,8 +242,15 @@ pub mod products {
         let products = product_list_res.data;
         let product2_candidate = products.iter().find(|p| p.id == product2.id);
 
-        assert_eq!(products.len(), service_data.products.len());
-        assert_eq!(product2_candidate, Some(&ListedProduct::from(product2)));
+        // -- assert 1
+
+        assert_eq!(products.len(), service_data.products.len(), "length must be the same");
+        assert_eq!(
+            product2_candidate, Some(&ListedProduct::from(product2.clone())),
+            "find a product by id",
+        );
+
+        // -- run 2
 
         let product_list_pag_res = TestClient::get(format!("{BASE_URL}/api/v1/products?page=2&per_page=2"))
             .send(&target)
@@ -234,10 +263,12 @@ pub mod products {
         let products = product_list_pag_res.data;
         let first_product = products.first();
 
-        assert_eq!(pagination.total_pages, 2);
-        assert_eq!(pagination.total_pages, 2);
-        assert_eq!(pagination.entries, 3);
-        assert_eq!(first_product, Some(&ListedProduct::from(product3)))
+        // -- assert 2
+
+        assert_eq!(pagination.total_pages, 2, "pagination: total pages");
+        assert_eq!(pagination.page, 2, "pagination: current page");
+        assert_eq!(pagination.entries, 3, "pagination: entries");
+        assert_eq!(first_product, Some(&ListedProduct::from(product3.clone())), "first product of page");
     }
 
 }
