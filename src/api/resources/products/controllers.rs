@@ -135,3 +135,77 @@ fn get_repo(depot: &Depot) -> ApiResult<Box<dyn ProductRepo>> {
 
     Ok(service.clone().product_repo())
 }
+
+#[cfg(test)]
+mod tests {
+    use salvo::http::form::FormData;
+    use super::cast_form_data_to_new_product;
+    use crate::api::resources::products::models::NewProduct;
+
+    fn create_form_data(fields: &[(&str, String)]) -> FormData {
+        let mut form_data = FormData::new();
+
+        for (k, v) in fields {
+            form_data.fields.insert(k.to_string(), v.to_string());
+        }
+
+        form_data        
+    }
+
+    #[test]
+    fn test_cast_form_data_to_new_product() {
+        let name = format!("product name");
+        let description = format!("description for product");
+        let url = format!("https://yahoo.com");
+        let price = 123000.05;
+
+        let form_data = create_form_data(&[
+            ("name", name.clone()),
+            ("price", price.to_string()),
+        ]);
+
+        let test_min_product = NewProduct {
+            name: name.clone(),
+            description: None,
+            url: None,
+            price: price.clone(),
+            available: false
+        };
+
+        let new_min_product = cast_form_data_to_new_product(&form_data)
+            .expect("Error casting");
+        
+        assert_eq!(new_min_product, test_min_product, "minimal form data casted to new product");
+
+        let form_data_2 = create_form_data(&[
+            ("name", name.clone()),
+            ("description", description.clone()),
+            ("url", url.clone()),
+            ("price", price.to_string()),
+
+        ]);
+
+        let test_full_product = NewProduct {
+            name,
+            description: Some(description),
+            url: Some(url),
+            price,
+            available: false
+        };
+
+        let new_full_product = cast_form_data_to_new_product(&form_data_2)
+            .expect("Error casting");
+        
+        assert_eq!(new_full_product, test_full_product, "full form data casted to new product");
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_cast_form_data_to_new_product_fail() {
+        let name = format!("A failing product");
+
+        let form_data = create_form_data(&[ ("name", name.clone())]);
+
+        cast_form_data_to_new_product(&form_data).unwrap();
+    }
+}
