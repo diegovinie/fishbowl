@@ -61,11 +61,13 @@ pub fn show_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiResu
 }
 
 #[handler]
-pub fn remove_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+pub fn remove_product(req: &Request, depot: &Depot, res: &mut Response) {
+    let repo = get_repo(depot).unwrap();
+
     match utils::get_req_param(req, "id") {
         Err(error) => api_errors::render_parse_field_error(res, error, "id"),
 
-        Ok(id) => match repo::delete_product(id) {
+        Ok(id) => match repo.delete_product(id) {
             Err(error) => api_errors::render_db_delete_error(res, error, "product"),
 
             Ok(total_deleted) => match total_deleted {

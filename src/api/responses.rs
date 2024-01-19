@@ -19,9 +19,9 @@ pub struct CollectionPaginatedResponse<T> {
     pub pagination: Pagination,
 }
 
-#[derive(Serialize)]
-struct ExecutionResponse {
-    message: String,
+#[derive(Serialize, Deserialize)]
+pub struct ExecutionResponse {
+    pub message: String,
 }
 
 #[derive(Serialize)]

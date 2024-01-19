@@ -97,6 +97,15 @@ impl contracts::ProductRepo for TestProductRepo {
 
         Ok(product)
     }
+
+    fn delete_product(&self, id: i32) -> Result<usize, Error> {
+        let products = self.data();
+
+        match products.iter().find(|p| p.id == id) {
+            None => Err(Error::NotFound),
+            Some(_) => Ok(1),
+        }
+    }
 }
 
 fn get_paginated_page<T: Clone>(items: &Vec<T>, page: i64, per_page: i64) -> &[T] {
@@ -134,7 +143,7 @@ pub mod products {
     use salvo::prelude::*;
     use salvo::test::{ResponseExt, TestClient};
     use fishbowl::api::resources::products::models::{Product, ListedProduct};
-    use fishbowl::api::responses::{ResourceResponse, CollectionResponse, CollectionPaginatedResponse};
+    use fishbowl::api::responses::{ResourceResponse, CollectionResponse, CollectionPaginatedResponse, ExecutionResponse};
     use super::ServiceData;
     use super::{prepare_target,  BASE_URL};
 
@@ -323,4 +332,41 @@ pub mod products {
 
     }
 
+    #[tokio::test]
+    async fn remove_product() {
+        //-- setup
+
+        let products = test_products();
+        let product1 = products.get("product1").unwrap();
+
+        let service_data = ServiceData {
+            users: vec![],
+            products: vec![product1.clone()],
+        };
+
+        let target = prepare_target(service_data.clone());
+
+        // -- run 1
+        let status_code = TestClient::delete(format!("{BASE_URL}/api/v1/products/1"))
+            .send(&target)
+            .await
+            .status_code
+            .unwrap();
+
+        // -- assert 1
+
+        assert_eq!(status_code, StatusCode::ACCEPTED, "product deleted status code");
+        
+        // -- run 2
+
+        let status_code = TestClient::delete(format!("{BASE_URL}/api/v1/products/2"))
+            .send(&target)
+            .await
+            .status_code
+            .unwrap();
+
+        // -- assert 2
+
+        assert_eq!(status_code, StatusCode::NOT_FOUND, "no product found status code");
+    }
 }

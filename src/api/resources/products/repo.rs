@@ -51,6 +51,13 @@ impl ProductRepo for Repo {
             .returning(Product::as_returning())
             .get_result(conn)
     }
+
+    fn delete_product(&self, id: i32) -> Result<usize, Error> {
+        let conn = &mut establish_connection();
+
+        diesel::delete(products_table.find(id))
+            .execute(conn)
+    }
 }
 
 pub fn update_product(product: &Product) -> Result<Product, Error> {
@@ -59,13 +66,6 @@ pub fn update_product(product: &Product) -> Result<Product, Error> {
     diesel::update(products_table.find(product.id))
         .set(product)
         .get_result(conn)
-}
-
-pub fn delete_product(id: i32) -> Result<usize, Error> {
-    let conn = &mut db::establish_connection();
-
-    diesel::delete(products_table.find(id))
-        .execute(conn)
 }
 
 pub fn insert_batch(products: Vec<NewProduct>) -> Result<usize, Error> {

@@ -20,4 +20,6 @@ pub trait ProductRepo: Send + Sync {
     fn list_products_paginate(&self, page: i64, per_page: i64) -> Result<(i64, Vec<ListedProduct>), Error>;
 
     fn insert_product(&self, new_product: NewProduct) -> Result<Product, Error>;
+
+    fn delete_product(&self, id: i32) -> Result<usize, Error>;
 }

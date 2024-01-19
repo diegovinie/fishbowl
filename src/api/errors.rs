@@ -176,6 +176,6 @@ pub fn render_db_update_error(res: &mut Response, error: impl Display, resource:
 }
 
 pub fn render_db_delete_error(res: &mut Response, error: impl Display, resource: impl Display) {
-    res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+    res.status_code(StatusCode::NOT_FOUND);
     res.render(json(format!("Error deleting `{resource}`: {error}")));
 }
