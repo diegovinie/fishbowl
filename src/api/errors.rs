@@ -2,7 +2,7 @@ use std::fmt::{Display, Debug};
 use salvo::prelude::*;
 use serde::Serialize;
 use thiserror::Error;
-use std::num::ParseIntError;
+use std::num::{ParseIntError, ParseFloatError};
 
 #[derive(Error, Debug)]
 pub enum ApiError {
@@ -10,8 +10,14 @@ pub enum ApiError {
     Diesel(#[from] diesel::result::Error),
     #[error("injection: `{0}`")]
     Injection(InjectionError),
-    #[error("parse: `{0}`")]
-    Parse(ParseIntError),
+    #[error("parse-int: `{0}`")]
+    ParseInt(ParseIntError),
+    #[error("parse-float: `{0}`")]
+    ParseFloat(ParseFloatError, String),
+    #[error("file-not-found: `{0}`")]
+    FieldNotFound(String),
+    #[error("parse-form-data: `{0}`")]
+    ParseFormData(#[from] salvo::http::ParseError),
 }
 
 #[async_trait]
@@ -21,8 +27,20 @@ impl Writer for ApiError {
             ApiError::Injection(_details) => {
                 render_injection_error(res, "product_repo");
             },
-            ApiError::Parse(error) => {
+            ApiError::ParseInt(error) => {
                 render_parse_field_error(res, error, "id");
+            },
+            ApiError::ParseFloat(error, field) => {
+                res.status_code(StatusCode::BAD_REQUEST);
+                res.render(json(format!("Error parsing `{field}` from the form: {error:?}")));
+            },
+            ApiError::FieldNotFound(field) => {
+                res.status_code(StatusCode::BAD_REQUEST);
+                res.render(json(format!("Field `{field}` not found")));
+            },
+            ApiError::ParseFormData(error) => {
+                res.status_code(StatusCode::BAD_REQUEST);
+                res.render(json(format!("Error parsing the form data: {error}")));
             },
             ApiError::Diesel(error) => match error {
                 diesel::result::Error::NotFound => {
@@ -30,16 +48,16 @@ impl Writer for ApiError {
                 },
                 _ => {
                     res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-                    res.render(make_json_response("undefined error".to_string()));
+                    res.render(json("undefined error".to_string()));
                 }
-            }
+            },
         }
     }
 }
 
 impl From<ParseIntError> for ApiError {
     fn from(value: ParseIntError) -> Self {
-        Self::Parse(value)
+        Self::ParseInt(value)
     }
 }
 

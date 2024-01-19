@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use salvo::prelude::*;
 use salvo::http::form::FormData;
-use crate::api::errors::ApiResult;
+use crate::api::errors::{ApiResult, ApiError};
 use crate::api::utils::pagination::Pagination;
 use crate::api::{utils, responses as api_responses, errors as api_errors};
 use crate::database::contracts::{DatabaseService, ProductRepo};
@@ -33,22 +33,18 @@ pub fn list_products(req: &mut Request, depot: &Depot, res: &mut Response) -> Ap
 }
 
 #[handler]
-pub async fn add_product(req: &mut Request, depot: &Depot, res: &mut Response) {
-    let repo = get_repo(depot).unwrap();
+pub async fn add_product(req: &mut Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
+    let repo = get_repo(depot)?;
 
-    match req.form_data().await {
-        Err(error) => api_errors::render_form_data_error(res, error),
+    let form_data = req.form_data().await?;
 
-        Ok(form_data) => match cast_form_data_to_new_product(form_data) {
-            Err(error) => api_errors::render_cast_error(res, error),
+    let new_product = cast_form_data_to_new_product(form_data)?;
 
-            Ok(new_product) => match repo.insert_product(new_product) {
-                Err(error) => api_errors::render_db_insert_error(res, error, "product"),
+    let product = repo.insert_product(new_product)?;
 
-                Ok(product) => api_responses::render_resource_created(res, product)
-            }
-        }
-    }
+    api_responses::render_resource_created(res, product);
+    
+    Ok(())
 }
 
 #[handler]
@@ -82,14 +78,16 @@ pub fn remove_product(req: &mut Request, _depot: &mut Depot, res: &mut Response)
 }
 
 #[handler]
-pub async fn update_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+pub async fn update_product(req: &mut Request, depot: &Depot, res: &mut Response) {
+    let repo = get_repo(depot).unwrap();
+
     match utils::get_req_param(req, "id") {
         Err(error) => api_errors::render_parse_field_error(res, error, "id"),
 
         Ok(id) => match req.form_data().await {
             Err(error) => api_errors::render_form_data_error(res, error),
 
-            Ok(form_data) => match repo::find_product(id) {
+            Ok(form_data) => match repo.find_product(id) {
                 Err(_) => api_errors::render_resource_not_found(res, "products"),
 
                 Ok(product) => {
@@ -106,12 +104,10 @@ pub async fn update_product(req: &mut Request, _depot: &mut Depot, res: &mut Res
     }
 }
 
-fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, api_errors::Error> {
-    use api_errors::Error::{FieldNotFound, ParseFloatErr};
-
+fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, ApiError> {
     let name = form_data.fields.get("name")
         .map(|n| n.to_string())
-        .ok_or(FieldNotFound("name"))?;
+        .ok_or(ApiError::FieldNotFound("name".to_string()))?;
 
     let description = form_data.fields.get("description")
         .map(|d| d.to_string());
@@ -120,9 +116,9 @@ fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, api
         .map(|u| u.to_string());
 
     let price: f32 = form_data.fields.get("price")
-        .ok_or(FieldNotFound("price"))?
+        .ok_or(ApiError::FieldNotFound("price".to_string()))?
         .parse()
-        .map_err(|_| ParseFloatErr("price"))?;
+        .map_err(|error| ApiError::ParseFloat(error, "price".to_string()))?;
 
     let new_product = NewProduct { name, description, url, price, available: false };
 
@@ -130,7 +126,7 @@ fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, api
 }
 
 fn get_repo(depot: &Depot) -> ApiResult<Box<dyn ProductRepo>> {
-    use crate::api::errors::{ApiError, InjectionError};
+    use crate::api::errors::InjectionError;
 
     let service = depot.obtain::<Arc<dyn DatabaseService>>()
         .map_err(|_| ApiError::Injection(InjectionError))?;
