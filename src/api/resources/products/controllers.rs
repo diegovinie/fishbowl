@@ -10,9 +10,11 @@ use super::models::NewProduct;
 use super::repo;
 
 #[handler]
-pub fn list_products(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+pub fn list_products(req: &mut Request, depot: &Depot, res: &mut Response) {
+    let repo = get_repo(depot).unwrap();
+
     match req.query::<i64>("per_page") {
-        None => match repo::list_products() {
+        None => match repo.list_products() {
             Err(error) => api_errors::render_db_retrieving_error(res, error, "products"),
 
             Ok(products) => api_responses::render_collection(res, products)
@@ -21,7 +23,7 @@ pub fn list_products(req: &mut Request, _depot: &mut Depot, res: &mut Response) 
         Some(per_page) => {
             let page = req.query::<i64>("page").unwrap_or(1);
 
-            match repo::list_products_paginate(page, per_page) {
+            match repo.list_products_paginate(page, per_page) {
                 Err(error) => api_errors::render_db_retrieving_error(res, error, "products"),
 
                 Ok((entries, products)) =>

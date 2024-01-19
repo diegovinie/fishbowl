@@ -33,11 +33,11 @@ pub mod pagination {
     use diesel::query_builder::{QueryFragment, AstPass, QueryId, Query};
     use diesel::{pg::Pg, sql_types::BigInt};
     use diesel::prelude::*;
-    use serde::Serialize;
+    use serde::{Serialize, Deserialize};
 
     const DEFAULT_PER_PAGE: i64 = 10;
 
-    #[derive(Serialize)]
+    #[derive(Serialize, Deserialize)]
     pub struct Pagination {
         pub page: i64,
         pub per_page: i64,
@@ -58,10 +58,10 @@ pub mod pagination {
 
     #[derive(Debug, Clone, Copy, QueryId)]
     pub struct Paginated<T> {
-        query: T,
-        page: i64,
-        per_page: i64,
-        offset: i64,
+        pub query: T,
+        pub page: i64,
+        pub per_page: i64,
+        pub offset: i64,
     }
 
     impl<T> Paginated<T> {

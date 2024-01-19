@@ -49,7 +49,7 @@ impl Updatable for Product {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, PartialOrd)]
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = crate::schema::products)]
 pub struct ListedProduct {

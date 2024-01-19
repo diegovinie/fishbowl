@@ -8,15 +8,15 @@ pub struct ResourceResponse<T> {
     pub data: T,
 }
 
-#[derive(Serialize)]
-struct CollectionResponse<T> {
-    data: Vec<T>,
+#[derive(Serialize, Deserialize)]
+pub struct CollectionResponse<T> {
+    pub data: Vec<T>,
 }
 
-#[derive(Serialize)]
-struct CollectionPaginatedResponse<T> {
-    data: Vec<T>,
-    pagination: Pagination,
+#[derive(Serialize, Deserialize)]
+pub struct CollectionPaginatedResponse<T> {
+    pub data: Vec<T>,
+    pub pagination: Pagination,
 }
 
 #[derive(Serialize)]
