@@ -4,7 +4,7 @@ use fishbowl::api;
 use api::utils::pagination::Paginate;
 use fishbowl::database::{ServiceInjector, InjectableServices};
 use fishbowl::database::contracts;
-use api::resources::products::models::{Product, ListedProduct};
+use api::resources::products::models::{Product, ListedProduct, NewProduct};
 use api::resources::users::models::User;
 
 static BASE_URL: &str = "http://localhost";
@@ -83,6 +83,19 @@ impl contracts::ProductRepo for TestProductRepo {
             .collect();
 
         Ok((entries, grouped))
+    }
+
+    fn insert_product(&self, new_product: NewProduct) -> Result<Product, Error> {
+        let products = self.data();
+        let NewProduct { name, description, url, price, available } = new_product;
+        let id = match products.last() {
+            None => 1,
+            Some(p) => p.id + 1,
+        };
+
+        let product = Product { id, name, description, url, price, available }; 
+
+        Ok(product)
     }
 }
 
@@ -269,6 +282,45 @@ pub mod products {
         assert_eq!(pagination.page, 2, "pagination: current page");
         assert_eq!(pagination.entries, 3, "pagination: entries");
         assert_eq!(first_product, Some(&ListedProduct::from(product3.clone())), "first product of page");
+    }
+
+    #[tokio::test]
+    async fn add_product() {
+        // -- setup
+
+        let test_products = test_products();
+        let product1 = test_products.get("product1").unwrap();
+
+        let service_data = ServiceData {
+            users: vec![],
+            products: vec![],
+        };
+
+        let target = prepare_target(service_data.clone());
+
+        let Product { name, description, url, price, ..} = product1.clone();
+
+        let fields = [
+            ("name", name.clone()),
+            ("description", description.clone().unwrap()),
+            ("url", url.clone().unwrap()),
+            ("price", price.to_string()),
+        ];
+
+        // -- run
+
+        let response = TestClient::post(format!("{BASE_URL}/api/v1/products"))
+            .form(&fields)
+            .send(&target)
+            .await
+            .take_json::<ResourceResponse<Product>>()
+            .await
+            .unwrap();
+
+        // -- assert
+
+        assert_eq!(response.data, Product { id: 1_i32, name, description, url, price, available: false });
+
     }
 
 }

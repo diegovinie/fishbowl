@@ -42,6 +42,15 @@ impl ProductRepo for Repo {
             )
         }
     }
+
+    fn insert_product(&self, new_product: NewProduct) -> Result<Product, Error> {
+        let conn = &mut establish_connection();
+
+        diesel::insert_into(products_table)
+            .values(&new_product)
+            .returning(Product::as_returning())
+            .get_result(conn)
+    }
 }
 
 pub fn find_product(id: i32) -> Result<Product, Error> {
@@ -76,15 +85,6 @@ pub fn list_products_paginate(page: i64, per_page: i64) -> Result<(i64, Vec<List
             results.into_iter().map(|(p, _)| ListedProduct::from(p)).collect())
         )
     }
-}
-
-pub fn insert_product(new_product: NewProduct) -> Result<Product, Error> {
-    let conn = &mut db::establish_connection();
-
-    diesel::insert_into(products_table)
-        .values(&new_product)
-        .returning(Product::as_returning())
-        .get_result(conn)
 }
 
 pub fn update_product(product: &Product) -> Result<Product, Error> {

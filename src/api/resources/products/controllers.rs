@@ -33,14 +33,16 @@ pub fn list_products(req: &mut Request, depot: &Depot, res: &mut Response) -> Ap
 }
 
 #[handler]
-pub async fn add_product(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+pub async fn add_product(req: &mut Request, depot: &Depot, res: &mut Response) {
+    let repo = get_repo(depot).unwrap();
+
     match req.form_data().await {
         Err(error) => api_errors::render_form_data_error(res, error),
 
         Ok(form_data) => match cast_form_data_to_new_product(form_data) {
             Err(error) => api_errors::render_cast_error(res, error),
 
-            Ok(new_product) => match repo::insert_product(new_product) {
+            Ok(new_product) => match repo.insert_product(new_product) {
                 Err(error) => api_errors::render_db_insert_error(res, error, "product"),
 
                 Ok(product) => api_responses::render_resource_created(res, product)
