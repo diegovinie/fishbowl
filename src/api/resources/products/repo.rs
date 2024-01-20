@@ -58,14 +58,14 @@ impl ProductRepo for Repo {
         diesel::delete(products_table.find(id))
             .execute(conn)
     }
-}
 
-pub fn update_product(product: &Product) -> Result<Product, Error> {
-    let conn = &mut db::establish_connection();
+    fn update_product(&self, product: &Product) -> Result<Product, Error> {
+        let conn = &mut establish_connection();
 
-    diesel::update(products_table.find(product.id))
-        .set(product)
-        .get_result(conn)
+        diesel::update(products_table.find(product.id))
+            .set(product)
+            .get_result(conn)
+    }
 }
 
 pub fn insert_batch(products: Vec<NewProduct>) -> Result<usize, Error> {

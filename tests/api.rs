@@ -7,7 +7,7 @@ use fishbowl::database::contracts;
 use api::resources::products::models::{Product, ListedProduct, NewProduct};
 use api::resources::users::models::User;
 
-static BASE_URL: &str = "http://localhost";
+static BASE_URL: &str = "http://localhost/api/v1";
 
 #[derive(Clone)]
 pub struct ServiceData {
@@ -127,6 +127,10 @@ impl contracts::ProductRepo for TestProductRepo {
             Some(_) => Ok(1),
         }
     }
+
+    fn update_product(&self, product: &Product) -> Result<Product, Error> {
+        Ok(product.clone())
+    }
 }
 
 fn get_paginated_page<T: Clone>(items: &Vec<T>, page: i64, per_page: i64) -> &[T] {
@@ -212,7 +216,7 @@ pub mod products {
 
         // -- run 1
 
-        let existing_product_res = TestClient::get(format!("{BASE_URL}/api/v1/products/1"))
+        let existing_product_res = TestClient::get(format!("{BASE_URL}/products/1"))
             .send(&target)
             .await
             .take_json::<ResourceResponse<Product>>()
@@ -225,7 +229,7 @@ pub mod products {
 
         // -- run 2
 
-        let not_found_product_status_code = TestClient::get(format!("{BASE_URL}/api/v1/products/2"))
+        let not_found_product_status_code = TestClient::get(format!("{BASE_URL}/products/2"))
             .send(&target)
             .await
             .status_code
@@ -237,7 +241,7 @@ pub mod products {
 
         // -- run 3
 
-        let wrong_param_status_code = TestClient::get(format!("{BASE_URL}/api/v1/products/letter"))
+        let wrong_param_status_code = TestClient::get(format!("{BASE_URL}/products/letter"))
             .send(&target)
             .await
             .status_code
@@ -267,7 +271,7 @@ pub mod products {
 
         // -- run 1
 
-        let product_list_res = TestClient::get(format!("{BASE_URL}/api/v1/products"))
+        let product_list_res = TestClient::get(format!("{BASE_URL}/products"))
             .send(&target)
             .await
             .take_json::<CollectionResponse<ListedProduct>>()
@@ -287,7 +291,7 @@ pub mod products {
 
         // -- run 2
 
-        let product_list_pag_res = TestClient::get(format!("{BASE_URL}/api/v1/products?page=2&per_page=2"))
+        let product_list_pag_res = TestClient::get(format!("{BASE_URL}/products?page=2&per_page=2"))
             .send(&target)
             .await
             .take_json::<CollectionPaginatedResponse<ListedProduct>>()
@@ -327,7 +331,7 @@ pub mod products {
 
         // -- run
 
-        let response = TestClient::post(format!("{BASE_URL}/api/v1/products"))
+        let response = TestClient::post(format!("{BASE_URL}/products"))
             .form(&fields)
             .send(&target)
             .await
@@ -352,7 +356,7 @@ pub mod products {
         let target = prepare_target(service_data.clone());
 
         // -- run 1
-        let status_code = TestClient::delete(format!("{BASE_URL}/api/v1/products/1"))
+        let status_code = TestClient::delete(format!("{BASE_URL}/products/1"))
             .send(&target)
             .await
             .status_code
@@ -364,7 +368,7 @@ pub mod products {
         
         // -- run 2
 
-        let status_code = TestClient::delete(format!("{BASE_URL}/api/v1/products/2"))
+        let status_code = TestClient::delete(format!("{BASE_URL}/products/2"))
             .send(&target)
             .await
             .status_code
@@ -373,5 +377,57 @@ pub mod products {
         // -- assert 2
 
         assert_eq!(status_code, StatusCode::NOT_FOUND, "no product found status code");
+    }
+
+    #[tokio::test]
+    async fn update_product() {
+        // -- setup
+
+        let products = test_products();
+        let product3 = products.get("product3").unwrap();
+        let service_data = ServiceData::with_products(vec![product3.clone()]);
+
+        let target = prepare_target(service_data.clone());
+
+        let description = "a new description";
+        let price = 99000.0;
+
+        let updated_product = Product { 
+            description: Some(description.to_string()),
+            price,
+            ..product3.clone() 
+        };
+
+        let fields = [
+            ("description", description),
+            ("price", &price.to_string()),
+        ];
+
+        // -- run 1
+
+        let response = TestClient::put(format!("{BASE_URL}/products/3"))
+            .form(&fields)
+            .send(&target)
+            .await
+            .take_json::<ResourceResponse<Product>>()
+            .await
+            .unwrap();
+
+        // -- assert 1
+
+        assert_eq!(response.data, updated_product, "product must have fields updated");
+
+        // -- run 2
+
+        let status_code = TestClient::put(format!("{BASE_URL}/products/1"))
+            .form(&fields)
+            .send(&target)
+            .await
+            .status_code
+            .unwrap();
+
+        // -- assert 2
+
+        assert_eq!(status_code, StatusCode::NOT_FOUND, "when a product is not found");
     }
 }

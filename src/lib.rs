@@ -19,7 +19,7 @@ pub mod models {
     use serde::{Deserialize, Serialize};
 
     pub trait Updatable {
-        fn merge(&self, form_data: &FormData) -> Self;
+        fn merge(self, form_data: &FormData) -> Self;
     }
 
     pub trait Composable<T, G> {

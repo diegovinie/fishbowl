@@ -29,16 +29,20 @@ pub struct NewProduct {
 }
 
 impl Updatable for Product {
-    fn merge(&self, form_data: &FormData) -> Self {
+    fn merge(self, form_data: &FormData) -> Self {
         Self {
             id: self.id,
             name: form_data.fields.get("name")
                 .unwrap_or(&self.name)
                 .to_string(),
-            description: form_data.fields.get("description")
-                .map(|d| d.to_string()),
-            url: form_data.fields.get("url")
-                .map(|u| u.to_string()),
+            description: match form_data.fields.get("description") {
+                None => self.description,
+                Some(value) => Some(value.clone()),
+            },
+            url: match form_data.fields.get("url") {
+                None => self.url,
+                Some(value) => Some(value.clone()),
+            },
             price: form_data.fields.get("price")
                 .unwrap_or(&"".to_string())
                 .to_owned()

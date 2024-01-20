@@ -7,7 +7,6 @@ use crate::api::{utils, responses as api_responses, errors as api_errors};
 use crate::database::contracts::{DatabaseService, ProductRepo};
 use crate::models::Updatable;
 use super::models::NewProduct;
-use super::repo;
 
 #[handler]
 pub fn list_products(req: &mut Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
@@ -89,7 +88,7 @@ pub async fn update_product(req: &mut Request, depot: &Depot, res: &mut Response
                 Ok(product) => {
                     let product_updated = product.merge(form_data);
 
-                    match repo::update_product(&product_updated) {
+                    match repo.update_product(&product_updated) {
                         Err(error) => api_errors::render_db_update_error(res, error, "product"),
 
                         Ok(updated_product) => api_responses::render_resource_updated(res, updated_product)

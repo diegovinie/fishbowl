@@ -22,4 +22,6 @@ pub trait ProductRepo: Send + Sync {
     fn insert_product(&self, new_product: NewProduct) -> Result<Product, Error>;
 
     fn delete_product(&self, id: i32) -> Result<usize, Error>;
+
+    fn update_product(&self, product: &Product) -> Result<Product, Error>;
 }

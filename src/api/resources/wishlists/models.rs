@@ -41,7 +41,7 @@ pub struct NewWishlist<'a> {
 }
 
 impl Updatable for Wishlist {
-    fn merge(&self, form_data: &FormData) -> Self {
+    fn merge(self, form_data: &FormData) -> Self {
         Self {
             id: self.id,
             title: form_data
