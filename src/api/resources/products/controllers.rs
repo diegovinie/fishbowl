@@ -14,7 +14,7 @@ pub fn list_products(req: &mut Request, depot: &Depot, res: &mut Response) -> Ap
 
     match req.query::<i64>("per_page") {
         None => {
-            let products = repo.list_products()?;
+            let products = repo.list()?;
 
             api_responses::render_collection(res, products);
         },
@@ -22,7 +22,7 @@ pub fn list_products(req: &mut Request, depot: &Depot, res: &mut Response) -> Ap
         Some(per_page) => {
             let page = req.query::<i64>("page").unwrap_or(1);
 
-            let (entries, products) = repo.list_products_paginate(page, per_page)?;
+            let (entries, products) = repo.list_paginated(page, per_page)?;
 
             api_responses::render_collection_paginated(res, products, Pagination::new(page, per_page, entries));
         }
@@ -39,7 +39,7 @@ pub async fn add_product(req: &mut Request, depot: &Depot, res: &mut Response) -
 
     let new_product = cast_form_data_to_new_product(form_data)?;
 
-    let product = repo.insert_product(new_product)?;
+    let product = repo.insert(new_product)?;
 
     api_responses::render_resource_created(res, product);
     
@@ -52,7 +52,7 @@ pub fn show_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiResu
     
     let id = utils::get_req_param::<i32>(req, "id")?;
     
-    let product = repo.find_product(id)?;
+    let product = repo.find_one(id)?;
     
     api_responses::render_resource(res, product);
 
@@ -65,7 +65,7 @@ pub fn remove_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiRe
 
     let id = utils::get_req_param(req, "id")?;
 
-    let total_deleted = repo.delete_product(id)?;
+    let total_deleted = repo.delete(id)?;
 
     api_responses::render_db_execution(res, total_deleted);
 
@@ -82,13 +82,13 @@ pub async fn update_product(req: &mut Request, depot: &Depot, res: &mut Response
         Ok(id) => match req.form_data().await {
             Err(error) => api_errors::render_form_data_error(res, error),
 
-            Ok(form_data) => match repo.find_product(id) {
+            Ok(form_data) => match repo.find_one(id) {
                 Err(_) => api_errors::render_resource_not_found(res, "products"),
 
                 Ok(product) => {
                     let product_updated = product.merge(form_data);
 
-                    match repo.update_product(&product_updated) {
+                    match repo.update(&product_updated) {
                         Err(error) => api_errors::render_db_update_error(res, error, "product"),
 
                         Ok(updated_product) => api_responses::render_resource_updated(res, updated_product)

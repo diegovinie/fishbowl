@@ -9,7 +9,7 @@ use diesel::result::Error;
 pub struct Repo;
 
 impl ProductRepo for Repo {
-    fn find_product(&self, id: i32) -> Result<Product, Error> {
+    fn find_one(&self, id: i32) -> Result<Product, Error> {
         let conn = &mut establish_connection();
 
         products_table
@@ -18,7 +18,7 @@ impl ProductRepo for Repo {
             .first(conn)
     }
 
-    fn list_products(&self) -> Result<Vec<ListedProduct>, Error> {
+    fn list(&self) -> Result<Vec<ListedProduct>, Error> {
         let conn = &mut establish_connection();
 
         products_table
@@ -26,7 +26,7 @@ impl ProductRepo for Repo {
             .load(conn)
     }
 
-    fn list_products_paginate(&self, page: i64, per_page: i64) -> Result<(i64, Vec<ListedProduct>), Error> {
+    fn list_paginated(&self, page: i64, per_page: i64) -> Result<(i64, Vec<ListedProduct>), Error> {
         let conn = &mut establish_connection();
 
         let results: Vec<(Product, i64)> = products_table.into_boxed()
@@ -43,7 +43,7 @@ impl ProductRepo for Repo {
         }
     }
 
-    fn insert_product(&self, new_product: NewProduct) -> Result<Product, Error> {
+    fn insert(&self, new_product: NewProduct) -> Result<Product, Error> {
         let conn = &mut establish_connection();
 
         diesel::insert_into(products_table)
@@ -52,14 +52,14 @@ impl ProductRepo for Repo {
             .get_result(conn)
     }
 
-    fn delete_product(&self, id: i32) -> Result<usize, Error> {
+    fn delete(&self, id: i32) -> Result<usize, Error> {
         let conn = &mut establish_connection();
 
         diesel::delete(products_table.find(id))
             .execute(conn)
     }
 
-    fn update_product(&self, product: &Product) -> Result<Product, Error> {
+    fn update(&self, product: &Product) -> Result<Product, Error> {
         let conn = &mut establish_connection();
 
         diesel::update(products_table.find(product.id))

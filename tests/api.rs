@@ -77,7 +77,7 @@ impl MockService<Product> for TestProductRepo {
 }
 
 impl contracts::ProductRepo for TestProductRepo {
-    fn find_product(&self, id: i32) -> Result<Product, Error> {
+    fn find_one(&self, id: i32) -> Result<Product, Error> {
         match self.data().into_iter().find(|item| item.id == id) {
             None => {
                 Err(Error::NotFound)
@@ -87,14 +87,14 @@ impl contracts::ProductRepo for TestProductRepo {
         }
     }
 
-    fn list_products(&self) -> Result<Vec<ListedProduct>, Error> {
+    fn list(&self) -> Result<Vec<ListedProduct>, Error> {
         Ok(self.data().iter()
             .map(|p| ListedProduct::from(p.clone()))
             .collect()
         )
     }
 
-    fn list_products_paginate(&self, page: i64, per_page: i64) -> Result<(i64, Vec<ListedProduct>), Error> {
+    fn list_paginated(&self, page: i64, per_page: i64) -> Result<(i64, Vec<ListedProduct>), Error> {
         let products = self.data();
         let entries = products.len() as i64;
 
@@ -106,7 +106,7 @@ impl contracts::ProductRepo for TestProductRepo {
         Ok((entries, grouped))
     }
 
-    fn insert_product(&self, new_product: NewProduct) -> Result<Product, Error> {
+    fn insert(&self, new_product: NewProduct) -> Result<Product, Error> {
         let products = self.data();
         let NewProduct { name, description, url, price, available } = new_product;
         let id = match products.last() {
@@ -119,7 +119,7 @@ impl contracts::ProductRepo for TestProductRepo {
         Ok(product)
     }
 
-    fn delete_product(&self, id: i32) -> Result<usize, Error> {
+    fn delete(&self, id: i32) -> Result<usize, Error> {
         let products = self.data();
 
         match products.iter().find(|p| p.id == id) {
@@ -128,7 +128,7 @@ impl contracts::ProductRepo for TestProductRepo {
         }
     }
 
-    fn update_product(&self, product: &Product) -> Result<Product, Error> {
+    fn update(&self, product: &Product) -> Result<Product, Error> {
         Ok(product.clone())
     }
 }
