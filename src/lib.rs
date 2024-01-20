@@ -63,6 +63,16 @@ impl Config {
     }
 }
 
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            domain: String::default(),
+            port: String::default(),
+            client_url: String::default(),
+        }
+    }
+}
+
 #[tokio::main]
 pub async fn start_server(service_injector: ServiceInjector, config: Config) {
     let Config { domain, port, client_url } = config;

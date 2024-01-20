@@ -1,7 +1,10 @@
 use std::process;
 
 use super::{start_server, Config};
-use crate::api::{admin::controllers::{parse_products_csv, parse_users_csv}, resources::users::models::User};
+use crate::api::admin::controllers::{parse_products_csv, parse_users_csv};
+use crate::api::resources::users::models::User;
+use crate::database::primary_impl::DatabaseServiceImpl;
+use crate::database::contracts::DatabaseService;
 use crate::database::primary_service_injector;
 
 pub enum Command {
@@ -81,7 +84,57 @@ pub struct Error {
     pub message: String,
 }
 
+pub struct CommandProcessor {
+    pub database: Box<dyn DatabaseService>,
+}
+
+impl CommandProcessor {
+    pub fn process(&self, command: Command) {
+        match command {
+            Command::Serve => todo!(),
+            Command::Populate(target) => match target {
+                PopulateTarget::All => todo!(),
+                PopulateTarget::Products => {
+                    self.populate_products();
+                },
+                PopulateTarget::Users => todo!(),
+                PopulateTarget::Help => todo!(),
+            },
+            Command::List(_) => todo!(),
+            Command::Help => todo!(),
+        }
+    }
+
+    pub fn populate_products(&self) {
+        let repo = self.database.product_repo();
+
+        match parse_products_csv() {
+            Err(error) => {
+                println!("{error}");
+            },
+
+            Ok(products) => match repo.insert_many(products) {
+                Err(error) => {
+                    println!("{error}");
+                },
+                Ok(total) => {
+                    println!("`Populate products` done. Total affected: {total}");
+                }
+            }
+        }
+    }
+}
+
 pub fn process_command(command: Command, config: Config) {
+
+    // let service_data = ServiceData::default();
+
+    let database = DatabaseServiceImpl;
+
+    let command_processor = CommandProcessor {
+        database: Box::new(database),
+    };
+
     match command {
         Command::Serve => start_server(primary_service_injector(), config),
         // Command::Serve => {
@@ -93,7 +146,7 @@ pub fn process_command(command: Command, config: Config) {
 
         //     start_server(service_injector, config)
         // },
-        Command::Populate(target) => populate(target),
+        Command::Populate(target) => populate(target, command_processor),
         Command::List(target) => list(target),
         Command::Help => print_help(),
     }
@@ -111,34 +164,15 @@ fn print_list_help() {
     println!("{}", LIST_HELP_MESSAGE);
 }
 
-fn populate(target: PopulateTarget) {
+fn populate(target: PopulateTarget, processor: CommandProcessor) {
     match target {
         PopulateTarget::All => {
             populate_users();
-            populate_products();
+            processor.process(Command::Populate(PopulateTarget::Products));
         },
-        PopulateTarget::Products => populate_products(),
+        PopulateTarget::Products => processor.process(Command::Populate(PopulateTarget::Products)),
         PopulateTarget::Users => populate_users(),
         PopulateTarget::Help => print_populate_help(),
-    }
-}
-
-fn populate_products() {
-    use crate::api::resources::products::repo::insert_batch;
-
-    match parse_products_csv() {
-        Err(error) => {
-            println!("{error}");
-        },
-
-        Ok(products) => match insert_batch(products) {
-            Err(error) => {
-                println!("{error}");
-            },
-            Ok(total) => {
-                println!("`Populate products` done. Total affected: {total}");
-            }
-        }
     }
 }
 

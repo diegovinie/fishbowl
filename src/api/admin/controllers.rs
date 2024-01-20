@@ -1,10 +1,13 @@
 use std::env;
+use std::sync::Arc;
 use salvo::prelude::*;
 use std::error::Error;
 use serde::Deserialize;
+use crate::api::errors::{ApiResult, ApiError};
 use crate::api::{errors as api_errors, responses as api_responses, utils};
 use crate::api::resources::users::models::NewUser;
 use crate::api::resources::products::models::NewProduct;
+use crate::database::contracts::{ProductRepo, DatabaseService};
 
 static USERS_CSV_FILE: &str = "data/users.csv";
 static PRODUCTS_CSV_FILE: &str = "data/products.csv";
@@ -64,13 +67,13 @@ pub fn populate_users(_depot: &Depot, res: &mut Response) {
 }
 
 #[handler]
-pub fn populate_products(_req: &mut Request, res: &mut Response) {
-    use crate::api::resources::products::repo::insert_batch;
+pub fn populate_products(_req: &mut Request, depot: &Depot, res: &mut Response) {
+    let repo = get_repo(depot).unwrap();
 
     match parse_products_csv() {
         Err(error) => api_errors::render_parse_field_error(res, error, "products.csv"),
 
-        Ok(products) => match insert_batch(products) {
+        Ok(products) => match repo.insert_many(products) {
             Err(error) => api_errors::render_db_insert_error(res, error, "products"),
 
             Ok(total) => api_responses::render_db_execution(res, total)
@@ -104,4 +107,13 @@ pub fn parse_products_csv() -> Result<Vec<NewProduct>, Box<dyn Error>> {
     }
 
     Ok(products)
+}
+
+fn get_repo(depot: &Depot) -> ApiResult<Box<dyn ProductRepo>> {
+    use crate::api::errors::InjectionError;
+
+    let service = depot.obtain::<Arc<dyn DatabaseService>>()
+        .map_err(|_| ApiError::Injection(InjectionError))?;
+
+    Ok(service.clone().product_repo())
 }

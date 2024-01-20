@@ -66,12 +66,12 @@ impl ProductRepo for Repo {
             .set(product)
             .get_result(conn)
     }
-}
 
-pub fn insert_batch(products: Vec<NewProduct>) -> Result<usize, Error> {
-    let conn = &mut db::establish_connection();
+    fn insert_many(&self, products: Vec<NewProduct>) -> Result<usize, Error> {
+        let conn = &mut db::establish_connection();
 
-    diesel::insert_into(products_table)
-        .values(products)
-        .execute(conn)
+        diesel::insert_into(products_table)
+            .values(products)
+            .execute(conn)
+    }
 }

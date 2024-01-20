@@ -73,5 +73,9 @@ impl contracts::ProductRepo for TestProductRepo {
     fn update(&self, product: &Product) -> Result<Product, Error> {
         Ok(product.clone())
     }
+
+    fn insert_many(&self, products: Vec<NewProduct>) -> Result<usize, Error> {
+        Ok(products.len())
+    }
 }
 
