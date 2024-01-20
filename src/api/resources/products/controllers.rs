@@ -3,7 +3,7 @@ use salvo::prelude::*;
 use salvo::http::form::FormData;
 use crate::api::errors::{ApiResult, ApiError};
 use crate::api::utils::pagination::Pagination;
-use crate::api::{utils, responses as api_responses, errors as api_errors};
+use crate::api::{utils, responses as api_responses};
 use crate::database::contracts::{DatabaseService, ProductRepo};
 use crate::models::Updatable;
 use super::models::NewProduct;
@@ -73,30 +73,22 @@ pub fn remove_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiRe
 }
 
 #[handler]
-pub async fn update_product(req: &mut Request, depot: &Depot, res: &mut Response) {
-    let repo = get_repo(depot).unwrap();
+pub async fn update_product(req: &mut Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
+    let repo = get_repo(depot)?;
 
-    match utils::get_req_param(req, "id") {
-        Err(error) => api_errors::render_parse_field_error(res, error, "id"),
+    let id = utils::get_req_param(req, "id")?;
 
-        Ok(id) => match req.form_data().await {
-            Err(error) => api_errors::render_form_data_error(res, error),
+    let form_data = req.form_data().await?;
 
-            Ok(form_data) => match repo.find_one(id) {
-                Err(_) => api_errors::render_resource_not_found(res, "products"),
+    let product = repo.find_one(id)?;
 
-                Ok(product) => {
-                    let product_updated = product.merge(form_data);
+    let product_updated = product.merge(form_data);
 
-                    match repo.update(&product_updated) {
-                        Err(error) => api_errors::render_db_update_error(res, error, "product"),
+    let updated_product = repo.update(&product_updated)?;
 
-                        Ok(updated_product) => api_responses::render_resource_updated(res, updated_product)
-                    }
-                }
-            }
-        }
-    }
+    api_responses::render_resource_updated(res, updated_product);
+
+    Ok(())
 }
 
 fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, ApiError> {
