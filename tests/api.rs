@@ -15,6 +15,27 @@ pub struct ServiceData {
     pub users: Vec<User>,
 }
 
+impl ServiceData {
+    // fn add_users(self, users: Vec<User>) -> Self {
+    //     Self { users, ..self }
+    // }
+
+    fn with_products(products: Vec<Product>) -> Self {
+        let def = Self::default();
+
+        Self { products, ..def }
+    }
+}
+
+impl Default for ServiceData {
+    fn default() -> Self {
+        Self { 
+            products: vec![], 
+            users: vec![],
+        }
+    }
+}
+
 pub struct TestDatabaseService {
     pub data: ServiceData,
 }
@@ -143,7 +164,7 @@ pub mod products {
     use salvo::prelude::*;
     use salvo::test::{ResponseExt, TestClient};
     use fishbowl::api::resources::products::models::{Product, ListedProduct};
-    use fishbowl::api::responses::{ResourceResponse, CollectionResponse, CollectionPaginatedResponse, ExecutionResponse};
+    use fishbowl::api::responses::{ResourceResponse, CollectionResponse, CollectionPaginatedResponse};
     use super::ServiceData;
     use super::{prepare_target,  BASE_URL};
 
@@ -186,12 +207,7 @@ pub mod products {
 
         let test_products = test_products();
         let product1 = test_products.get("product1").unwrap();
-
-        let service_data = ServiceData {
-            users: vec![],
-            products: vec![product1.clone()],
-        };
-
+        let service_data = ServiceData::with_products(vec![product1.clone()]);
         let target = prepare_target(service_data);
 
         // -- run 1
@@ -241,14 +257,11 @@ pub mod products {
         let product2 = test_products.get("product2").unwrap();
         let product3 = test_products.get("product3").unwrap();
 
-        let service_data = ServiceData {
-            users: vec![],
-            products: vec![
-                product1.clone(),
-                product2.clone(),
-                product3.clone(),
-            ],
-        };
+        let service_data = ServiceData::with_products(vec![
+            product1.clone(),
+            product2.clone(),
+            product3.clone(),
+        ]);
 
         let target = prepare_target(service_data.clone());
 
@@ -299,11 +312,7 @@ pub mod products {
 
         let test_products = test_products();
         let product1 = test_products.get("product1").unwrap();
-
-        let service_data = ServiceData {
-            users: vec![],
-            products: vec![],
-        };
+        let service_data = ServiceData::default();
 
         let target = prepare_target(service_data.clone());
 
@@ -338,11 +347,7 @@ pub mod products {
 
         let products = test_products();
         let product1 = products.get("product1").unwrap();
-
-        let service_data = ServiceData {
-            users: vec![],
-            products: vec![product1.clone()],
-        };
+        let service_data = ServiceData::with_products(vec![product1.clone()]);
 
         let target = prepare_target(service_data.clone());
 
