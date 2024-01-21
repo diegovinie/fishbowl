@@ -7,7 +7,7 @@ use crate::api::errors::{ApiResult, ApiError};
 use crate::api::{errors as api_errors, responses as api_responses, utils};
 use crate::api::resources::users::models::NewUser;
 use crate::api::resources::products::models::NewProduct;
-use crate::database::contracts::{ProductRepo, DatabaseService};
+use crate::database::contracts::DatabaseService;
 
 static USERS_CSV_FILE: &str = "data/users.csv";
 static PRODUCTS_CSV_FILE: &str = "data/products.csv";

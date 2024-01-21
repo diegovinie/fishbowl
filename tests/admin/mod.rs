@@ -1,7 +1,9 @@
 use std::collections::HashMap;
-use salvo::test::{ResponseExt, TestClient};
+use salvo::{test::{ResponseExt, TestClient}, hyper::StatusCode};
 use fishbowl::api::responses::CollectionResponse;
 use fishbowl::api::resources::users::models::User;
+use crate::utils::get_user_and_token;
+
 use super::utils::{prepare_target, ServiceData,  BASE_URL, get_admin_and_token};
 
 fn test_users() -> HashMap<String, User> {
@@ -19,14 +21,14 @@ fn test_users() -> HashMap<String, User> {
 }
 #[tokio::test]
 async fn list_users() {
-    // -- setup
+    // -- setup 1
     let test_users = test_users();
     let admin_user = test_users.get("admin_user").unwrap();
 
     let service_data = ServiceData::with_users(vec![admin_user.clone()]);
 
     let target = prepare_target(service_data);
-    
+
     let (_, auth_token) = get_admin_and_token();
 
     let bearer = format!("Bearer {auth_token}");
@@ -42,5 +44,38 @@ async fn list_users() {
         .unwrap();
 
     // -- assert 1
-    assert_eq!(response.data, vec![admin_user.clone()]);
+    assert_eq!(response.data, vec![admin_user.clone()], "the user list must be the same");
+
+    // -- setup 2
+
+    let (_, auth_token) = get_user_and_token();
+
+    let bearer = format!("Bearer {auth_token}");
+
+       // -- run 2
+
+    let status_code = TestClient::get(format!("{BASE_URL}/admin/users"))
+       .add_header("authorization", bearer, true)
+       .send(&target)
+       .await
+       .status_code
+       .unwrap();
+
+   // -- assert 2
+
+   assert_eq!(status_code, StatusCode::FORBIDDEN, "A not admin user gets forbidden");
+
+    // -- run 3
+
+    let status_code = TestClient::get(format!("{BASE_URL}/admin/users"))
+        .send(&target)
+        .await
+        .status_code
+        .unwrap();
+
+      // -- assert 3
+
+      assert_eq!(status_code, StatusCode::UNAUTHORIZED, "An unknown user get unauthorized");
+
+
 }

@@ -146,7 +146,7 @@ pub fn render_inconsistency_error(res: &mut Response, value: impl Display) {
 }
 
 pub fn render_unauthorized(res: &mut Response) {
-    res.status_code(StatusCode::UNAUTHORIZED);
+    res.status_code(StatusCode::FORBIDDEN);
     res.render(json(format!("Not enough privileges")));
 }
 

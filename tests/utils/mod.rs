@@ -103,8 +103,23 @@ pub fn prepare_target(service_data: ServiceData) -> Service {
      Service::new(router)
 }
 
+pub fn get_user_and_token() -> (AuthUser, String) {
+    let admin = AuthUser {
+        id: 1,
+        name: "Sr user".to_string(),
+        email: "user@dummy.test".to_string(),
+        role: "USER".to_string(),
+        active: true,
+        password: "".to_string(),
+    };
+
+    let auth_token = auth::create_token(admin.clone()).unwrap();
+
+    (admin, auth_token)
+}
+
 pub fn get_admin_and_token() -> (AuthUser, String) {
-    let admin = AuthUser { 
+    let admin = AuthUser {
         id: 1,
         name: "Sr admin".to_string(),
         email: "admin@dummy.test".to_string(),
