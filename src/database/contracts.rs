@@ -9,6 +9,8 @@ pub trait DatabaseService: Send + Sync {
 }
 
 pub trait UserRepo {
+    fn list(&self) -> Result<Vec<User>, Error>;
+    
     fn find_user(&self, id: i32) -> Result<User, Error>;
 }
 

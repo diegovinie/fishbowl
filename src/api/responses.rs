@@ -24,10 +24,10 @@ pub struct ExecutionResponse {
     pub message: String,
 }
 
-#[derive(Serialize)]
-struct AuthenticationResponse {
-    auth_token: String,
-    user: User,
+#[derive(Serialize, Deserialize)]
+pub struct AuthenticationResponse {
+    pub auth_token: String,
+    pub user: User,
 }
 
 pub fn render_resource<T: Serialize + Send>(res: &mut Response, resource: T) {

@@ -52,6 +52,17 @@ pub fn check_admin_role(depot: &Depot, res: &mut Response) {
 }
 
 #[handler]
+pub fn list_users(_req: &Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
+    let repo = get_db(depot)?.user_repo();
+
+    let users = repo.list()?;
+
+    api_responses::render_collection(res, users);
+
+    Ok(())
+}
+
+#[handler]
 pub fn populate_users(_depot: &Depot, res: &mut Response) {
     use crate::api::resources::users::repo::insert_batch;
 
@@ -68,7 +79,7 @@ pub fn populate_users(_depot: &Depot, res: &mut Response) {
 
 #[handler]
 pub fn populate_products(_req: &mut Request, depot: &Depot, res: &mut Response) {
-    let repo = get_repo(depot).unwrap();
+    let repo = get_db(depot).unwrap().product_repo();
 
     match parse_products_csv() {
         Err(error) => api_errors::render_parse_field_error(res, error, "products.csv"),
@@ -109,11 +120,11 @@ pub fn parse_products_csv() -> Result<Vec<NewProduct>, Box<dyn Error>> {
     Ok(products)
 }
 
-fn get_repo(depot: &Depot) -> ApiResult<Box<dyn ProductRepo>> {
+fn get_db(depot: &Depot) -> ApiResult<&Arc<dyn DatabaseService>> {
     use crate::api::errors::InjectionError;
 
     let service = depot.obtain::<Arc<dyn DatabaseService>>()
         .map_err(|_| ApiError::Injection(InjectionError))?;
 
-    Ok(service.clone().product_repo())
+    Ok(service)
 }

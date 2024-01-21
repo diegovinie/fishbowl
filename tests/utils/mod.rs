@@ -1,13 +1,18 @@
 pub mod test_product_repo;
+pub mod test_user_repo;
 
 use salvo::prelude::*;
 use fishbowl::api;
 use api::utils::pagination::Paginate;
+// use api::auth;
+use fishbowl::api::auth;
 use fishbowl::database::{ServiceInjector, InjectableServices};
 use fishbowl::database::contracts;
 use api::resources::products::models::Product;
 use api::resources::users::models::User;
+use api::auth::models::User as AuthUser;
 use test_product_repo::TestProductRepo;
+use test_user_repo::TestUserRepo;
 
 pub static BASE_URL: &str = "http://localhost/api/v1";
 
@@ -22,6 +27,12 @@ impl ServiceData {
         let def = Self::default();
 
         Self { products, ..def }
+    }
+
+    pub fn with_users(users: Vec<User>) -> Self {
+        let def = Self::default();
+
+        Self { users, ..def }
     }
 }
 
@@ -46,7 +57,7 @@ impl TestDatabaseService {
 
 impl contracts::DatabaseService for TestDatabaseService {
     fn user_repo(&self) -> Box<dyn contracts::UserRepo> {
-        todo!()
+        Box::new(TestUserRepo::new(self.data.users.clone()))
     }
 
     fn product_repo(&self) -> Box<dyn contracts::ProductRepo> {
@@ -74,6 +85,7 @@ fn get_paginated_page<T: Clone>(items: &Vec<T>, page: i64, per_page: i64) -> &[T
 
 pub fn router(service_injector: ServiceInjector) -> Router {
     Router::new()
+        .hoop(auth::decode_token())
         .hoop(service_injector)
         .push(api::get_router())
 }
@@ -89,4 +101,19 @@ pub fn prepare_target(service_data: ServiceData) -> Service {
     let router = router(service_injector);
 
      Service::new(router)
+}
+
+pub fn get_admin_and_token() -> (AuthUser, String) {
+    let admin = AuthUser { 
+        id: 1,
+        name: "Sr admin".to_string(),
+        email: "admin@dummy.test".to_string(),
+        role: "ADMIN".to_string(),
+        active: true,
+        password: "".to_string(),
+    };
+
+    let auth_token = auth::create_token(admin.clone()).unwrap();
+
+    (admin, auth_token)
 }

@@ -78,7 +78,7 @@ fn cast_login_form_data(form_data: &FormData) -> Result<(&str, &str), api_errors
     Ok((casted_email, casted_password))
 }
 
-fn create_token(user: User) -> Result<String, jsonwebtoken::errors::Error> {
+pub fn create_token(user: User) -> Result<String, jsonwebtoken::errors::Error> {
     let User { name: username, id, role, .. } = user;
     let exp = OffsetDateTime::now_utc() + Duration::hours(1);
 

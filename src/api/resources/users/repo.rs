@@ -8,6 +8,14 @@ use super::models::{User, NewUser};
 pub struct Repo;
 
 impl UserRepo for Repo {
+    fn list(&self) -> Result<Vec<User>, Error> {
+        let conn = &mut establish_connection();
+        
+        users_table
+            .select(User::as_select())
+            .load(conn)            
+    }
+
     fn find_user(&self, id: i32) -> Result<User, Error> {
         let conn = &mut establish_connection();
 
