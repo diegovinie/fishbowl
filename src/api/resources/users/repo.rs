@@ -10,10 +10,10 @@ pub struct Repo;
 impl UserRepo for Repo {
     fn list(&self) -> Result<Vec<User>, Error> {
         let conn = &mut establish_connection();
-        
+
         users_table
             .select(User::as_select())
-            .load(conn)            
+            .load(conn)
     }
 
     fn find_user(&self, id: i32) -> Result<User, Error> {
@@ -33,14 +33,6 @@ pub fn find_user(id: i32) -> Result<User, Error> {
         .find(id)
         .select(User::as_select())
         .first(conn)
-}
-
-pub fn list_all() -> Result<Vec<User>, Error> {
-    let conn = &mut db::establish_connection();
-
-    users_table
-        .select(User::as_select())
-        .load(conn)
 }
 
 pub fn insert_batch(users: Vec<NewUser>) -> Result<usize, Error> {

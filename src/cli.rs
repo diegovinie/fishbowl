@@ -100,7 +100,12 @@ impl CommandProcessor {
                 PopulateTarget::Users => todo!(),
                 PopulateTarget::Help => todo!(),
             },
-            Command::List(_) => todo!(),
+            Command::List(target) => match target {
+                ListTarget::Users => {
+                    self.list_users();
+                },
+                ListTarget::Help => todo!(),
+            },
             Command::Help => todo!(),
         }
     }
@@ -120,6 +125,23 @@ impl CommandProcessor {
                 Ok(total) => {
                     println!("`Populate products` done. Total affected: {total}");
                 }
+            }
+        }
+    }
+
+    pub fn list_users(&self) {
+        let repo = self.database.user_repo();
+
+        match repo.list() {
+            Err(error) => {
+                println!("{error}");
+            },
+            Ok(users) => {
+                users.iter().for_each(|user| {
+                    let User { id, name, email, role, active, .. } = user;
+
+                    println!("{id:4}  {name:30}  {email:30}  {role:10}  {active:6}");
+                });
             }
         }
     }
@@ -147,7 +169,7 @@ pub fn process_command(command: Command, config: Config) {
         //     start_server(service_injector, config)
         // },
         Command::Populate(target) => populate(target, command_processor),
-        Command::List(target) => list(target),
+        Command::List(target) => list(target, command_processor),
         Command::Help => print_help(),
     }
 }
@@ -195,22 +217,9 @@ fn populate_users() {
     }
 }
 
-fn list(target: ListTarget) {
-    use crate::api::resources::users::repo::list_all;
-
+fn list(target: ListTarget, command_processor: CommandProcessor) {
     match target {
-        ListTarget::Users => match list_all() {
-            Err(error) => {
-                println!("{error}");
-            },
-            Ok(users) => {
-                users.iter().for_each(|user| {
-                    let User { id, name, email, role, active, .. } = user;
-
-                    println!("{id:4}  {name:30}  {email:30}  {role:10}  {active:6}");
-                });
-            }
-        }
+        ListTarget::Users => command_processor.list_users(),
         ListTarget::Help => print_list_help(),
     }
 }
