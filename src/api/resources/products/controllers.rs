@@ -3,6 +3,7 @@ use salvo::prelude::*;
 use salvo::http::form::FormData;
 use crate::api::errors::{ApiResult, ApiError};
 use crate::api::utils::pagination::Pagination;
+use crate::api::validations::FormValidator;
 use crate::api::{utils, responses as api_responses};
 use crate::database::contracts::{DatabaseService, ProductRepo};
 use crate::models::Updatable;
@@ -92,20 +93,12 @@ pub async fn update_product(req: &mut Request, depot: &Depot, res: &mut Response
 }
 
 fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, ApiError> {
-    let name = form_data.fields.get("name")
-        .map(|n| n.to_string())
-        .ok_or(ApiError::FieldNotFound("name".to_string()))?;
+    let validator = FormValidator(form_data);
 
-    let description = form_data.fields.get("description")
-        .map(|d| d.to_string());
-
-    let url = form_data.fields.get("url")
-        .map(|u| u.to_string());
-
-    let price: f32 = form_data.fields.get("price")
-        .ok_or(ApiError::FieldNotFound("price".to_string()))?
-        .parse()
-        .map_err(|error| ApiError::ParseFloat(error, "price".to_string()))?;
+    let name = validator.string("name")?;
+    let description = validator.optional_string("description")?;
+    let url = validator.optional_string("url")?;
+    let price = validator.float("price")?;
 
     let new_product = NewProduct { name, description, url, price, available: false };
 

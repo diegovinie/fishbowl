@@ -4,6 +4,7 @@ pub mod resources;
 pub mod responses;
 pub mod admin;
 pub mod utils;
+pub mod validations;
 
 pub fn get_router() -> salvo::Router {
     use resources::{products, wishlists, wishes};
