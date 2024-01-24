@@ -97,7 +97,9 @@ impl CommandProcessor {
                 PopulateTarget::Products => {
                     self.populate_products();
                 },
-                PopulateTarget::Users => todo!(),
+                PopulateTarget::Users => {
+                    self.populate_users();
+                },
                 PopulateTarget::Help => todo!(),
             },
             Command::List(target) => match target {
@@ -145,6 +147,25 @@ impl CommandProcessor {
             }
         }
     }
+
+    fn populate_users(&self) {
+        let repo = self.database.user_repo();
+
+        match parse_users_csv() {
+            Err(error) => {
+                println!("{error}");
+            },
+
+            Ok(users) => match repo.insert_many(users) {
+                Err(error) => {
+                    println!("{error}");
+                },
+                Ok(total) => {
+                    println!("`Populate users` done. Total affected: {total}");
+                }
+            }
+        }
+    }
 }
 
 pub fn process_command(command: Command, config: Config) {
@@ -189,31 +210,12 @@ fn print_list_help() {
 fn populate(target: PopulateTarget, processor: CommandProcessor) {
     match target {
         PopulateTarget::All => {
-            populate_users();
+            processor.process(Command::Populate(PopulateTarget::Users));
             processor.process(Command::Populate(PopulateTarget::Products));
         },
-        PopulateTarget::Products => processor.process(Command::Populate(PopulateTarget::Products)),
-        PopulateTarget::Users => populate_users(),
+        target @ PopulateTarget::Products => processor.process(Command::Populate(target)),
+        target @ PopulateTarget::Users => processor.process(Command::Populate(target)),
         PopulateTarget::Help => print_populate_help(),
-    }
-}
-
-fn populate_users() {
-    use crate::api::resources::users::repo::insert_batch;
-
-    match parse_users_csv() {
-        Err(error) => {
-            println!("{error}");
-        },
-
-        Ok(users) => match insert_batch(users) {
-            Err(error) => {
-                println!("{error}");
-            },
-            Ok(total) => {
-                println!("`Populate users` done. Total affected: {total}");
-            }
-        }
     }
 }
 

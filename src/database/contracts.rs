@@ -1,5 +1,5 @@
 use crate::api::resources::products::models::{Product, ListedProduct, NewProduct};
-use crate::api::resources::users::models::User;
+use crate::api::resources::users::models::{User, NewUser};
 use diesel::result::Error;
 
 pub trait DatabaseService: Send + Sync {
@@ -10,8 +10,10 @@ pub trait DatabaseService: Send + Sync {
 
 pub trait UserRepo {
     fn list(&self) -> Result<Vec<User>, Error>;
-    
+
     fn find_user(&self, id: i32) -> Result<User, Error>;
+
+    fn insert_many(&self, users: Vec<NewUser>) ->Result<usize, Error>;
 }
 
 pub trait ProductRepo: Send + Sync {

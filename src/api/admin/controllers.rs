@@ -63,18 +63,20 @@ pub fn list_users(_req: &Request, depot: &Depot, res: &mut Response) -> ApiResul
 }
 
 #[handler]
-pub fn populate_users(_depot: &Depot, res: &mut Response) {
-    use crate::api::resources::users::repo::insert_batch;
+pub fn populate_users(depot: &Depot, res: &mut Response) ->ApiResult<()> {
+    let repo = get_db(depot)?.user_repo();
 
     match parse_users_csv() {
         Err(error) => api_errors::render_parse_field_error(res, error, "users.csv"),
 
-        Ok(users) => match insert_batch(users) {
+        Ok(users) => match repo.insert_many(users) {
             Err(error) => api_errors::render_db_insert_error(res, error, "users"),
 
             Ok(total) => api_responses::render_db_execution(res, total)
         }
-    }
+    };
+
+    Ok(())
 }
 
 #[handler]

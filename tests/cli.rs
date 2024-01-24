@@ -46,3 +46,20 @@ fn list_users() {
 
     command_processor.process(command);
 }
+
+#[test]
+fn populate_users() {
+    let command = Command::Populate(PopulateTarget::Users);
+
+    let service_data = ServiceData::default();
+
+    let database = TestDatabaseService {
+        data: service_data,
+    };
+
+    let command_processor = CommandProcessor {
+        database: Box::new(database),
+    };
+
+    command_processor.process(command);
+}
