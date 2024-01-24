@@ -7,7 +7,6 @@ use std::sync::{Arc, Mutex};
 use salvo::prelude::*;
 use fishbowl::api;
 use api::utils::pagination::Paginate;
-// use api::auth;
 use fishbowl::api::auth;
 use fishbowl::database::{ServiceInjector, InjectableServices};
 use fishbowl::database::contracts;
@@ -50,20 +49,22 @@ impl Default for ServiceData {
 
 #[derive(Clone)]
 pub struct Reporter {
-    reports: HashMap<String, String>,
+    fn_calls: HashMap<String, u8>,
 }
 
 impl Reporter {
     pub fn new() -> Self {
-        Self { reports: HashMap::new() }
+        Self { 
+            fn_calls: HashMap::new(),
+        }
     }
 
-    pub fn report(&mut self, key: String, value: String) {
-        self.reports.insert(key, value);
+    pub fn register_fn_call(&mut self, fn_name: &str) {
+        self.fn_calls.insert(fn_name.to_string(), self.fn_calls.get(fn_name).unwrap_or(&0) + 1);
     }
 
-    pub fn reports(&self) -> HashMap<String, String> {
-        self.reports.clone()
+    pub fn get_fn_calls(&self, fn_name: &str) -> u8 {
+        *self.fn_calls.get(fn_name).unwrap_or(&0)
     }
 }
 
@@ -81,8 +82,8 @@ impl TestDatabaseService {
         }
     }
 
-    pub fn get_reports(&self) -> HashMap<String, String> {
-        self.reporter.lock().unwrap().reports()
+    pub fn with_reporter(data: ServiceData, reporter: Arc<Mutex<Reporter>>) -> Self {
+        Self { data, reporter }
     }
 }
 
@@ -127,6 +128,18 @@ pub fn router(service_injector: ServiceInjector) -> Router {
 pub fn prepare_target(service_data: ServiceData) -> Service {
     let services = InjectableServices {
         database: TestDatabaseService::new(service_data),
+    };
+
+    let service_injector = ServiceInjector::new(services);
+
+    let router = router(service_injector);
+
+     Service::new(router)
+}
+
+pub fn prepare_service(database: TestDatabaseService) -> Service {
+    let services = InjectableServices {
+        database,
     };
 
     let service_injector = ServiceInjector::new(services);

@@ -50,12 +50,11 @@ fn list_users() {
 
     command_processor.process(command);
 
-    let reports = database.get_reports();
-    let repo_user_list = reports.get("list").unwrap();
+    let calls = database.reporter.lock()
+        .expect("Locking Reporter failed")
+        .get_fn_calls("user_repo.list");
 
-    assert_eq!(repo_user_list, "no lo puedo creer");
-
-    assert_eq!(reports.len(), 3, "checking reports");
+    assert_eq!(calls, 1, "user_repo.list() should be called once");
 }
 
 #[test]

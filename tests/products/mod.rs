@@ -2,9 +2,10 @@
 use salvo::prelude::*;
 use salvo::test::{ResponseExt, TestClient};
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 use fishbowl::api::resources::products::models::{Product, ListedProduct};
 use fishbowl::api::responses::{ResourceResponse, CollectionResponse, CollectionPaginatedResponse};
-use super::utils::{prepare_target, ServiceData,  BASE_URL};
+use super::utils::{prepare_target, ServiceData, prepare_service, TestDatabaseService,  BASE_URL, Reporter};
 
 fn test_products() -> HashMap<String, Product> {
     let mut map = HashMap::new();
@@ -101,7 +102,11 @@ async fn list_products() {
         product3.clone(),
     ]);
 
-    let target = prepare_target(service_data.clone());
+    let reporter = Arc::new(Mutex::new(Reporter::new()));
+
+    let database = TestDatabaseService::with_reporter(service_data.clone(), reporter.clone());
+
+    let target = prepare_service(database.clone());
 
     // -- run 1
 
@@ -112,11 +117,13 @@ async fn list_products() {
         .await
         .unwrap();
 
+    let calls = reporter.lock().unwrap().get_fn_calls("product_repo.list");
     let products = product_list_res.data;
     let product2_candidate = products.iter().find(|p| p.id == product2.id);
 
     // -- assert 1
 
+    assert_eq!(calls, 1, "function product_repo.list() is called once");
     assert_eq!(products.len(), service_data.products.len(), "length must be the same");
     assert_eq!(
         product2_candidate, Some(&ListedProduct::from(product2.clone())),
@@ -135,9 +142,13 @@ async fn list_products() {
     let pagination = product_list_pag_res.pagination;
     let products = product_list_pag_res.data;
     let first_product = products.first();
+    let calls = reporter.lock()
+        .expect("Locking Reporter failed")
+        .get_fn_calls("product_repo.list_paginated");
 
     // -- assert 2
 
+    assert_eq!(calls, 1, "function product_repo.list_paginated() is called twice");
     assert_eq!(pagination.total_pages, 2, "pagination: total pages");
     assert_eq!(pagination.page, 2, "pagination: current page");
     assert_eq!(pagination.entries, 3, "pagination: entries");

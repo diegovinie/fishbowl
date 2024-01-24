@@ -21,9 +21,9 @@ impl MockService<User> for TestUserRepo {
 
 impl contracts::UserRepo for TestUserRepo {
     fn list(&self) -> Result<Vec<User>, Error> {
-        let mut reporter = self.reporter.lock().unwrap();
-
-        reporter.report("list".to_string(), "hello baby!".to_string());
+        self.reporter.lock()
+            .expect("Locking Reporter failed")
+            .register_fn_call("user_repo.list");
 
         Ok(self.data())
     }

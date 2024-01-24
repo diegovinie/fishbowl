@@ -31,6 +31,10 @@ impl contracts::ProductRepo for TestProductRepo {
     }
 
     fn list(&self) -> Result<Vec<ListedProduct>, Error> {
+        self.reporter.lock()
+            .expect("Error locking reporter")
+            .register_fn_call("product_repo.list");
+        
         Ok(self.data().iter()
             .map(|p| ListedProduct::from(p.clone()))
             .collect()
@@ -45,6 +49,10 @@ impl contracts::ProductRepo for TestProductRepo {
             .iter()
             .map(|p| ListedProduct::from(p.clone()))
             .collect();
+
+        self.reporter.lock()
+            .expect("Error locking reporter")
+            .register_fn_call("product_repo.list_paginated");
 
         Ok((entries, grouped))
     }
