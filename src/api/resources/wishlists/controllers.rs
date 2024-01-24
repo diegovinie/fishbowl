@@ -1,7 +1,9 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
 use crate::api::auth::JwtClaims;
+use crate::api::errors::ApiResult;
 use crate::api::utils::pagination::Pagination;
+use crate::api::validations::{FormValidator, Validator};
 use crate::api::{errors as api_errors, responses as api_responses, utils};
 use crate::models::Updatable;
 use super::models::NewWishlist;
@@ -43,12 +45,12 @@ pub fn list_user_wishlists(_req: &mut Request, depot: &mut Depot, res: &mut Resp
 
 #[handler]
 pub fn show_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    match (utils::get_req_param(req, "id"), utils::get_user_id(depot)) {
-        (Err(error), _) => api_errors::render_form_data_error(res, error),
+    match (req.param::<i32>("id"), utils::get_user_id(depot)) {
+        (None, _) => api_errors::render_resource_not_found(res, "id"),
 
         (_, None) => api_errors::render_get_user_id_not_found(res),
 
-        (Ok(id), Some(user_id)) => match req.query::<String>("detailed") {
+        (Some(id), Some(user_id)) => match req.query::<String>("detailed") {
             None => match repo::find_wishlist(id, user_id) {
                 Err(_) => api_errors::render_resource_not_found(res, "wishlist"),
 
@@ -87,12 +89,12 @@ pub async fn create_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Res
 
 #[handler]
 pub async fn update_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    match (utils::get_req_param(req, "id"), utils::get_user_id(depot)) {
-        (Err(error), _) => api_errors::render_form_data_error(res, error),
+    match (req.param::<i32>("id"), utils::get_user_id(depot)) {
+        (None, _) => api_errors::render_resource_not_found(res, "id"),
 
         (_, None) => api_errors::render_get_user_id_not_found(res),
 
-        (Ok(id), Some(user_id)) => match req.form_data().await {
+        (Some(id), Some(user_id)) => match req.form_data().await {
             Err(error) => api_errors::render_form_data_error(res, error),
 
             Ok(form_data) => match repo::find_wishlist(id, user_id) {
@@ -116,12 +118,12 @@ pub async fn update_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Res
 
 #[handler]
 pub fn delete_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    match (utils::get_req_param(req, "id"), utils::get_user_id(depot)) {
-        (Err(error), _) => api_errors::render_parse_field_error(res, error, "id"),
+    match (req.param::<i32>("id"), utils::get_user_id(depot)) {
+        (None, _) => api_errors::render_resource_not_found(res, "id"),
 
         (_, None) => api_errors::render_get_user_id_not_found(res),
 
-        (Ok(id), Some(user_id)) => match repo::delete_wishlist(id, user_id) {
+        (Some(id), Some(user_id)) => match repo::delete_wishlist(id, user_id) {
             Err(error) => api_errors::render_db_delete_error(res, error, "wishlist"),
 
             Ok(total_deleted) => match total_deleted {
@@ -133,25 +135,12 @@ pub fn delete_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response)
     }
 }
 
-fn cast_form_data_to_new_wishlist(
-    form_data: &FormData,
-    user_id: i32,
-) -> Result<NewWishlist, api_errors::Error> {
-    use api_errors::Error::FieldNotFound;
-
-    let title = form_data
-        .fields
-        .get("title")
-        .ok_or(FieldNotFound("title"))?;
-
-    let description = form_data
-        .fields
-        .get("description")
-        .ok_or(FieldNotFound("description"))?;
+fn cast_form_data_to_new_wishlist(form_data: &FormData, user_id: i32) -> ApiResult<NewWishlist> {
+    let validator = FormValidator(form_data);
 
     let new_wishlist = NewWishlist {
-        title,
-        description: Some(description),
+        title: validator.string("title")?,
+        description: validator.optional_string("description")?,
         user_id,
     };
 

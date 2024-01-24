@@ -4,7 +4,7 @@ use salvo::http::form::FormData;
 use crate::api::errors::{ApiResult, ApiError};
 use crate::api::utils::pagination::Pagination;
 use crate::api::validations::{Validator, FormValidator};
-use crate::api::{utils, responses as api_responses};
+use crate::api::responses as api_responses;
 use crate::database::contracts::{DatabaseService, ProductRepo};
 use crate::models::Updatable;
 use super::models::NewProduct;
@@ -51,7 +51,7 @@ pub async fn add_product(req: &mut Request, depot: &Depot, res: &mut Response) -
 pub fn show_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
     let repo = get_repo(depot)?;
     
-    let id = utils::get_req_param::<i32>(req, "id")?;
+    let id = req.param::<i32>("id").ok_or(ApiError::FieldNotFound("id".to_string()))?;
     
     let product = repo.find_one(id)?;
     
@@ -64,7 +64,7 @@ pub fn show_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiResu
 pub fn remove_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
     let repo = get_repo(depot).unwrap();
 
-    let id = utils::get_req_param(req, "id")?;
+    let id = req.param::<i32>("id").ok_or(ApiError::FieldNotFound("id".to_string()))?;
 
     let total_deleted = repo.delete(id)?;
 
@@ -77,7 +77,7 @@ pub fn remove_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiRe
 pub async fn update_product(req: &mut Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
     let repo = get_repo(depot)?;
 
-    let id = utils::get_req_param(req, "id")?;
+    let id = req.param::<i32>("id").ok_or(ApiError::FieldNotFound("id".to_string()))?;
 
     let form_data = req.form_data().await?;
 

@@ -2,16 +2,25 @@ use salvo::http::form::FormData;
 use super::errors::{ApiResult, ApiError};
 
 pub trait Validator {
-  fn float(&self, key: &str) -> ApiResult<f32>;
+    fn integer(&self, key: &str) -> ApiResult<i32>;
 
-  fn string(&self, key: &str) -> ApiResult<String>;
+    fn float(&self, key: &str) -> ApiResult<f32>;
 
-  fn optional_string(&self, key: &str) -> ApiResult<Option<String>>;
+    fn string(&self, key: &str) -> ApiResult<String>;
+
+    fn optional_string(&self, key: &str) -> ApiResult<Option<String>>;
 }
 
 pub struct FormValidator<'a>(pub &'a FormData);
 
 impl Validator for FormValidator<'_> {
+    fn integer(&self, key: &str) -> ApiResult<i32> {
+        self.0.fields.get(key)
+            .ok_or(ApiError::FieldNotFound(key.to_string()))?
+            .parse()
+            .map_err(|error| ApiError::ParseInt(error, key.to_string()))
+    }
+
     fn float(&self, key: &str) -> ApiResult<f32> {
         self.0.fields.get(key)
             .ok_or(ApiError::FieldNotFound(key.to_string()))?

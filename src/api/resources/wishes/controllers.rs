@@ -1,6 +1,8 @@
 
 use salvo::prelude::*;
 use salvo::http::form::FormData;
+use crate::api::errors::ApiResult;
+use crate::api::validations::{FormValidator, Validator};
 use crate::api::{utils, errors as api_errors, responses as api_responses};
 use super::models::NewWish;
 use super::repo;
@@ -53,7 +55,7 @@ pub async fn create_wish(req: &mut Request, depot: &mut Depot, res: &mut Respons
     match (req.param::<i32>("wishlist_id"), utils::get_user_id(depot)) {
         (_, None) => api_errors::render_get_user_id_not_found(res),
 
-        (None, _) => api_errors::render_resource_not_found(res, "associated wishlist"),
+        (None, _) => api_errors::render_resource_not_found(res, "id"),
 
         (Some(w_id), Some(user_id)) => match req.form_data().await {
             Err(error) => api_errors::render_form_data_error(res, error),
@@ -104,20 +106,13 @@ pub fn delete_wish(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     }
 }
 
-fn cast_form_data_to_new_wish(form_data: &FormData) -> Result<NewWish, api_errors::Error> {
-    use api_errors::Error::{FieldNotFound, ParseIntErr};
+fn cast_form_data_to_new_wish(form_data: &FormData) -> ApiResult<NewWish> {
+    let validator = FormValidator(form_data);
 
-    let wishlist_id: i32 = form_data.fields.get("wishlist_id")
-        .ok_or(FieldNotFound("wishlist_id"))?
-        .parse()
-        .map_err(|_| ParseIntErr("wishlist_id"))?;
-
-    let product_id: i32 = form_data.fields.get("product_id")
-        .ok_or(FieldNotFound("product_id"))?
-        .parse()
-        .map_err(|_| ParseIntErr("product_id"))?;
-
-    let new_wish = NewWish { wishlist_id, product_id };
+    let new_wish = NewWish { 
+        wishlist_id: validator.integer("wishlist_id")?,
+        product_id: validator.integer("product_id")?,
+    };
 
     Ok(new_wish)
 }

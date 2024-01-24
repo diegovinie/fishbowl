@@ -11,7 +11,7 @@ pub enum ApiError {
     #[error("injection: `{0}`")]
     Injection(InjectionError),
     #[error("parse-int: `{0}`")]
-    ParseInt(ParseIntError),
+    ParseInt(ParseIntError, String),
     #[error("parse-float: `{0}`")]
     ParseFloat(ParseFloatError, String),
     #[error("file-not-found: `{0}`")]
@@ -27,8 +27,9 @@ impl Writer for ApiError {
             ApiError::Injection(_details) => {
                 render_injection_error(res, "product_repo");
             },
-            ApiError::ParseInt(error) => {
-                render_parse_field_error(res, error, "id");
+            ApiError::ParseInt(error, field) => {
+                res.status_code(StatusCode::BAD_REQUEST);
+                res.render(json(format!("Error parsing `{field}` from the form: {error:?}")));
             },
             ApiError::ParseFloat(error, field) => {
                 res.status_code(StatusCode::BAD_REQUEST);
@@ -55,11 +56,11 @@ impl Writer for ApiError {
     }
 }
 
-impl From<ParseIntError> for ApiError {
-    fn from(value: ParseIntError) -> Self {
-        Self::ParseInt(value)
-    }
-}
+// impl From<ParseIntError> for ApiError {
+//     fn from(value: ParseIntError) -> Self {
+//         Self::ParseInt(value)
+//     }
+// }
 
 pub type ApiResult<T> = Result<T, ApiError>;
 

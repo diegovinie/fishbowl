@@ -32,9 +32,9 @@ pub struct Wishlist {
 
 #[derive(Debug, Insertable)]
 #[diesel(table_name = wishlists)]
-pub struct NewWishlist<'a> {
-    pub title: &'a str,
-    pub description: Option<&'a str>,
+pub struct NewWishlist {
+    pub title: String,
+    pub description: Option<String>,
     // pub date: Option<SystemTime>,
     pub user_id: i32,
     // pub published: bool,

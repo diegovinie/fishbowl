@@ -1,16 +1,6 @@
 use salvo::prelude::*;
-use std::str::FromStr;
 use crate::models::Role;
-
 use super::auth::JwtClaims;
-
-pub fn get_req_param<T: FromStr>(req: &Request, param: &str) -> Result<T, T::Err> {
-    req.params()
-        .get(param)
-        .cloned()
-        .unwrap_or_default()
-        .parse()
-}
 
 pub fn get_user_id(depot: &mut Depot) -> Option<i32> {
     match depot.jwt_auth_data::<JwtClaims>() {
