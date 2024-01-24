@@ -1,15 +1,17 @@
+use std::sync::{Arc, Mutex};
 use diesel::result::Error;
 use fishbowl::api::resources::users::models::{User, NewUser};
 use fishbowl::database::contracts;
-use super::MockService;
+use super::{MockService, Reporter};
 
 pub struct TestUserRepo {
     pub data: Vec<User>,
+    pub reporter: Arc<Mutex<Reporter>>,
 }
 
 impl MockService<User> for TestUserRepo {
-    fn new(data: Vec<User>) -> Self {
-        Self { data }
+    fn new(data: Vec<User>, reporter: Arc<Mutex<Reporter>>) -> Self {
+        Self { data, reporter }
     }
 
     fn data(&self) -> Vec<User> {
@@ -19,6 +21,10 @@ impl MockService<User> for TestUserRepo {
 
 impl contracts::UserRepo for TestUserRepo {
     fn list(&self) -> Result<Vec<User>, Error> {
+        let mut reporter = self.reporter.lock().unwrap();
+
+        reporter.report("list".to_string(), "hello baby!".to_string());
+
         Ok(self.data())
     }
 

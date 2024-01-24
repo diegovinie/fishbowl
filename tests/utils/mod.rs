@@ -1,6 +1,9 @@
 pub mod test_product_repo;
 pub mod test_user_repo;
 
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+
 use salvo::prelude::*;
 use fishbowl::api;
 use api::utils::pagination::Paginate;
@@ -45,29 +48,59 @@ impl Default for ServiceData {
     }
 }
 
+#[derive(Clone)]
+pub struct Reporter {
+    reports: HashMap<String, String>,
+}
+
+impl Reporter {
+    pub fn new() -> Self {
+        Self { reports: HashMap::new() }
+    }
+
+    pub fn report(&mut self, key: String, value: String) {
+        self.reports.insert(key, value);
+    }
+
+    pub fn reports(&self) -> HashMap<String, String> {
+        self.reports.clone()
+    }
+}
+
+#[derive(Clone)]
 pub struct TestDatabaseService {
     pub data: ServiceData,
+    pub reporter: Arc<Mutex<Reporter>>,
 }
 
 impl TestDatabaseService {
     pub fn new(data: ServiceData) -> Self {
-        Self { data }
+        Self { 
+            data,
+            reporter: Arc::new(Mutex::new(Reporter::new())),
+        }
+    }
+
+    pub fn get_reports(&self) -> HashMap<String, String> {
+        self.reporter.lock().unwrap().reports()
     }
 }
 
 impl contracts::DatabaseService for TestDatabaseService {
     fn user_repo(&self) -> Box<dyn contracts::UserRepo> {
-        Box::new(TestUserRepo::new(self.data.users.clone()))
+        let repo = TestUserRepo::new(self.data.users.clone(), self.reporter.clone());
+
+        Box::new(repo)
     }
 
     fn product_repo(&self) -> Box<dyn contracts::ProductRepo> {
-        Box::new(TestProductRepo::new(self.data.products.clone()))
+        Box::new(TestProductRepo::new(self.data.products.clone(), self.reporter.clone()))
     }
 }
 
 
 pub trait MockService<T> {
-    fn new(data: Vec<T>) -> Self;
+    fn new(data: Vec<T>, reporter: Arc<Mutex<Reporter>>) -> Self;
 
     fn data(&self) -> Vec<T>;
 }

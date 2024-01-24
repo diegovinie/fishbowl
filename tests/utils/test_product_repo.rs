@@ -1,16 +1,17 @@
-
+use std::sync::{Arc, Mutex};
 use diesel::result::Error;
 use fishbowl::api::resources::products::models::{Product, ListedProduct, NewProduct};
 use fishbowl::database::contracts;
-use super::{MockService, get_paginated_page};
+use super::{MockService, get_paginated_page, Reporter};
 
 pub struct TestProductRepo {
-    pub data: Vec<Product>
+    pub data: Vec<Product>,
+    pub reporter: Arc<Mutex<Reporter>>,
 }
 
 impl MockService<Product> for TestProductRepo {
-    fn new(data: Vec<Product>) -> Self {
-        Self { data }
+    fn new(data: Vec<Product>, reporter: Arc<Mutex<Reporter>>) -> Self {
+        Self { data, reporter }
     }
 
     fn data(&self) -> Vec<Product> {
