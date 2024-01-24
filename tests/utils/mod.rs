@@ -3,7 +3,6 @@ pub mod test_user_repo;
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-
 use salvo::prelude::*;
 use fishbowl::api;
 use api::utils::pagination::Paginate;
@@ -124,7 +123,6 @@ pub fn router(service_injector: ServiceInjector) -> Router {
         .push(api::get_router())
 }
 
-
 pub fn prepare_target(service_data: ServiceData) -> Service {
     let services = InjectableServices {
         database: TestDatabaseService::new(service_data),
@@ -137,9 +135,9 @@ pub fn prepare_target(service_data: ServiceData) -> Service {
      Service::new(router)
 }
 
-pub fn prepare_service(database: TestDatabaseService) -> Service {
+pub fn prepare_api_service(service_data: ServiceData, reporter: Arc<Mutex<Reporter>>) -> Service {
     let services = InjectableServices {
-        database,
+        database: TestDatabaseService::with_reporter(service_data, reporter),
     };
 
     let service_injector = ServiceInjector::new(services);

@@ -33,6 +33,10 @@ impl contracts::UserRepo for TestUserRepo {
     }
 
     fn insert_many(&self, users: Vec<NewUser>) ->Result<usize, Error> {
+        self.reporter.lock()
+            .expect("Locking Reporter failed")
+            .register_fn_call("user_repo.insert_many");
+        
         Ok(users.len())
     }
 }

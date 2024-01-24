@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use fishbowl::api::resources::products::models::{Product, ListedProduct};
 use fishbowl::api::responses::{ResourceResponse, CollectionResponse, CollectionPaginatedResponse};
-use super::utils::{prepare_target, ServiceData, prepare_service, TestDatabaseService,  BASE_URL, Reporter};
+use super::utils::{prepare_target, prepare_api_service, ServiceData, BASE_URL, Reporter};
 
 fn test_products() -> HashMap<String, Product> {
     let mut map = HashMap::new();
@@ -104,9 +104,7 @@ async fn list_products() {
 
     let reporter = Arc::new(Mutex::new(Reporter::new()));
 
-    let database = TestDatabaseService::with_reporter(service_data.clone(), reporter.clone());
-
-    let target = prepare_service(database.clone());
+    let target = prepare_api_service(service_data.clone(), reporter.clone());
 
     // -- run 1
 

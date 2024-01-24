@@ -84,6 +84,10 @@ impl contracts::ProductRepo for TestProductRepo {
     }
 
     fn insert_many(&self, products: Vec<NewProduct>) -> Result<usize, Error> {
+        self.reporter.lock()
+            .expect("Locking Reporter failed")
+            .register_fn_call("product_repo.insert_many");
+
         Ok(products.len())
     }
 }
