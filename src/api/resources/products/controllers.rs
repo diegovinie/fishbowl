@@ -3,7 +3,7 @@ use salvo::prelude::*;
 use salvo::http::form::FormData;
 use crate::api::errors::{ApiResult, ApiError};
 use crate::api::utils::pagination::Pagination;
-use crate::api::validations::FormValidator;
+use crate::api::validations::{Validator, FormValidator};
 use crate::api::{utils, responses as api_responses};
 use crate::database::contracts::{DatabaseService, ProductRepo};
 use crate::models::Updatable;
