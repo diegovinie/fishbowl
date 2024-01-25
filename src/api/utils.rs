@@ -2,7 +2,7 @@ use salvo::prelude::*;
 use crate::models::Role;
 use super::auth::JwtClaims;
 
-pub fn get_user_id(depot: &mut Depot) -> Option<i32> {
+pub fn get_user_id(depot: &Depot) -> Option<i32> {
     match depot.jwt_auth_data::<JwtClaims>() {
         None => None,
         Some(data) => Some(data.claims.id),

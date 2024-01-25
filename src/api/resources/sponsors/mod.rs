@@ -1,29 +1,13 @@
-pub mod models {
-    use diesel::prelude::*;
-    use serde::Serialize;
-    use crate::api::resources::users::models::User;
-    use crate::api::resources::wishes::models::Wish;
-    use crate::schema;
+pub mod controllers;
+pub mod repo;
+pub mod models;
 
-    #[derive(Serialize, Debug, Clone)]
-    #[derive(Queryable, Selectable, Identifiable, Associations, PartialEq, AsChangeset)]
-    #[diesel(belongs_to(User))]
-    #[diesel(belongs_to(Wish))]
-    #[diesel(table_name = schema::sponsors)]
-    pub struct Sponsor {
-        id: i32,
-        leader: bool,
-        amount: f32,
-        user_id: i32,
-        wish_id: i32,
-    }
+use salvo::Router;
+use crate::api::auth;
+use self::controllers::{add_sponsor};
 
-    #[derive(Serialize, Debug, Clone)]
-    pub struct DetailedSponsor {
-        id: i32,
-        leader: bool,
-        amount: f32,
-        user: User,
-        wish: Wish,
-    }
+pub fn get_router() -> Router {
+    Router::with_path("wishes/<wish_id>/sponsors")
+        .hoop(auth::handle_auth)
+        .post(add_sponsor)
 }

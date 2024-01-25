@@ -9,6 +9,8 @@ pub trait Validator {
     fn string(&self, key: &str) -> ApiResult<String>;
 
     fn optional_string(&self, key: &str) -> ApiResult<Option<String>>;
+
+    fn optional_boolean(&self, key: &str) -> ApiResult<Option<bool>>;
 }
 
 pub struct FormValidator<'a>(pub &'a FormData);
@@ -40,4 +42,9 @@ impl Validator for FormValidator<'_> {
 
         Ok(value)
     }
+
+    fn optional_boolean(&self, key: &str) -> ApiResult<Option<bool>> {
+        todo!()
+    }
+
 }

@@ -53,7 +53,7 @@ pub struct Reporter {
 
 impl Reporter {
     pub fn new() -> Self {
-        Self { 
+        Self {
             fn_calls: HashMap::new(),
         }
     }
@@ -75,7 +75,7 @@ pub struct TestDatabaseService {
 
 impl TestDatabaseService {
     pub fn new(data: ServiceData) -> Self {
-        Self { 
+        Self {
             data,
             reporter: Arc::new(Mutex::new(Reporter::new())),
         }
@@ -95,6 +95,10 @@ impl contracts::DatabaseService for TestDatabaseService {
 
     fn product_repo(&self) -> Box<dyn contracts::ProductRepo> {
         Box::new(TestProductRepo::new(self.data.products.clone(), self.reporter.clone()))
+    }
+
+    fn sponsor_repo(&self) -> Box<dyn contracts::SponsorRepo> {
+        todo!()
     }
 }
 
