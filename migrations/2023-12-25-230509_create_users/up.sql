@@ -3,6 +3,6 @@ CREATE TABLE users (
   name VARCHAR NOT NULL,
   email TEXT NOT NULL,
   role VARCHAR NOT NULL DEFAULT 'USER',
-  password TEXT NOT NULL,
+  password bytea NOT NULL,
   active BOOLEAN NOT NULL DEFAULT FALSE
 );

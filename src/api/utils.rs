@@ -1,4 +1,5 @@
 use salvo::prelude::*;
+use sha2::{Sha256, Digest};
 use crate::models::Role;
 use super::auth::JwtClaims;
 
@@ -99,4 +100,24 @@ pub mod pagination {
             }
         }
     }
+}
+
+pub fn compare_passwords(pwd: &[u8], candidate: &str) -> bool {
+    let mut hasher = Sha256::new();
+
+    hasher.update(candidate.as_bytes());
+
+    let hashed = hasher.finalize();
+
+    &hashed[..] == pwd
+}
+
+pub fn hash_password(pwd: &str) -> Vec<u8> {
+    let mut hasher = Sha256::new();
+
+    hasher.update(pwd.as_bytes());
+
+    let result = hasher.finalize();
+
+    Vec::from(&result[..])
 }

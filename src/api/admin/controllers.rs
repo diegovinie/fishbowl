@@ -4,6 +4,7 @@ use salvo::prelude::*;
 use std::error::Error;
 use serde::Deserialize;
 use crate::api::errors::{ApiResult, ApiError};
+use crate::api::utils::hash_password;
 use crate::api::{errors as api_errors, responses as api_responses, utils};
 use crate::api::resources::users::models::NewUser;
 use crate::api::resources::products::models::NewProduct;
@@ -24,7 +25,7 @@ impl Into<NewUser> for UserBatch {
     fn into(self) -> NewUser {
         let Self { name, email, password, active } = self;
 
-        NewUser { name, email, password, active }
+        NewUser { name, email, password: hash_password(&password), active }
     }
 }
 

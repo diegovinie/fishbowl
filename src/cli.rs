@@ -3,6 +3,7 @@ use std::process;
 use super::{start_server, Config};
 use crate::api::admin::controllers::{parse_products_csv, parse_users_csv};
 use crate::api::resources::users::models::User;
+use crate::api::utils::hash_password;
 use crate::database::primary_impl::DatabaseServiceImpl;
 use crate::database::contracts::DatabaseService;
 use crate::database::primary_service_injector;
@@ -11,6 +12,7 @@ pub enum Command {
     Serve,
     Populate(PopulateTarget),
     List(ListTarget),
+    Hash(String),
     Help,
 }
 
@@ -39,6 +41,11 @@ impl Command {
                     },
                     Some(target) => Ok(Self::List(ListTarget::from(target)))
                 },
+
+                "hash" => match args.get(2) {
+                    None => todo!("Create help for hash"),
+                    Some(target) => Ok(Self::Hash(target.to_string()))
+                }
 
                 other_action => Err(Error { message: format!("Action: `{other_action}` not found.")}),
             }
@@ -108,6 +115,7 @@ impl CommandProcessor {
                 },
                 ListTarget::Help => todo!(),
             },
+            Command::Hash(target) => self.hash(&target),
             Command::Help => todo!(),
         }
     }
@@ -166,6 +174,12 @@ impl CommandProcessor {
             }
         }
     }
+
+    fn hash(&self, text: &str) {
+        let hashed = hash_password(&text);
+
+        print!("{:x?}", hashed);
+    }
 }
 
 pub fn process_command(command: Command, config: Config) {
@@ -192,6 +206,7 @@ pub fn process_command(command: Command, config: Config) {
         Command::Populate(target) => populate(target, command_processor),
         Command::List(target) => list(target, command_processor),
         Command::Help => print_help(),
+        cmd @ Command::Hash(_) => command_processor.process(cmd),
     }
 }
 

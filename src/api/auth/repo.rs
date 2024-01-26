@@ -2,6 +2,7 @@ use diesel::{prelude::*, QueryDsl};
 use crate::db;
 use crate::schema::users::{table as users_table, dsl::*};
 use super::models::User;
+use crate::api::utils::compare_passwords;
 
 pub fn validate(email_candidate: &str, password_candidate: &str) -> Option<User> {
     let conn = &mut db::establish_connection();
@@ -12,7 +13,7 @@ pub fn validate(email_candidate: &str, password_candidate: &str) -> Option<User>
 
     match user_result {
         Err(_) => None,
-        Ok(user) => match &user.password == password_candidate {
+        Ok(user) => match compare_passwords(&user.password, password_candidate) {
             false => None,
             true => Some(user),
         }

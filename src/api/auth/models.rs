@@ -11,7 +11,7 @@ pub struct User {
     pub name: String,
     pub email: String,
     pub role: String,
-    pub password: String,
+    pub password: Vec<u8>,
     pub active: bool,
 }
 
