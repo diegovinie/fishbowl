@@ -43,7 +43,7 @@ impl Validator for FormValidator<'_> {
         Ok(value)
     }
 
-    fn optional_boolean(&self, key: &str) -> ApiResult<Option<bool>> {
+    fn optional_boolean(&self, _key: &str) -> ApiResult<Option<bool>> {
         todo!()
     }
 

@@ -158,7 +158,7 @@ pub fn get_user_and_token() -> (AuthUser, String) {
         email: "user@dummy.test".to_string(),
         role: "USER".to_string(),
         active: true,
-        password: "".to_string(),
+        password: vec![],
     };
 
     let auth_token = auth::create_token(admin.clone()).unwrap();
@@ -173,7 +173,7 @@ pub fn get_admin_and_token() -> (AuthUser, String) {
         email: "admin@dummy.test".to_string(),
         role: "ADMIN".to_string(),
         active: true,
-        password: "".to_string(),
+        password: vec![],
     };
 
     let auth_token = auth::create_token(admin.clone()).unwrap();
