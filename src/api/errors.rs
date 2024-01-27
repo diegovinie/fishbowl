@@ -18,6 +18,8 @@ pub enum ApiError {
     FieldNotFound(String),
     #[error("parse-form-data: `{0}`")]
     ParseFormData(#[from] salvo::http::ParseError),
+    #[error("chrono-parse: `{0}")]
+    ChronoParse(#[from] chrono::format::ParseError),
 }
 
 #[async_trait]
@@ -52,6 +54,10 @@ impl Writer for ApiError {
                     res.render(json("undefined error".to_string()));
                 }
             },
+            ApiError::ChronoParse(error) => {
+                res.status_code(StatusCode::BAD_REQUEST);
+                res.render(json(format!("Error parsing date: {error:?}")));
+            }
         }
     }
 }

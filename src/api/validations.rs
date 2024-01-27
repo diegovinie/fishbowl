@@ -1,5 +1,7 @@
 use salvo::http::form::FormData;
+use chrono::NaiveDateTime;
 use super::errors::{ApiResult, ApiError};
+use super::utils::formatters::optional_date::FORMAT;
 
 pub trait Validator {
     fn integer(&self, key: &str) -> ApiResult<i32>;
@@ -11,6 +13,8 @@ pub trait Validator {
     fn optional_string(&self, key: &str) -> ApiResult<Option<String>>;
 
     fn optional_boolean(&self, key: &str) -> ApiResult<Option<bool>>;
+
+    fn optional_date(&self, key: &str) -> ApiResult<Option<NaiveDateTime>>;
 }
 
 pub struct FormValidator<'a>(pub &'a FormData);
@@ -45,6 +49,16 @@ impl Validator for FormValidator<'_> {
 
     fn optional_boolean(&self, _key: &str) -> ApiResult<Option<bool>> {
         todo!()
+    }
+
+    fn optional_date(&self, key: &str) -> ApiResult<Option<NaiveDateTime>> {
+        match self.0.fields.get(key) {
+            None => Ok(None),
+            Some(s) => {
+                let date = NaiveDateTime::parse_from_str(s, FORMAT)?;
+                Ok(Some(date))
+            },
+        }
     }
 
 }

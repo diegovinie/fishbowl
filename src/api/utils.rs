@@ -127,7 +127,7 @@ pub mod formatters {
         use chrono::NaiveDateTime;
         use serde::{self, Deserialize, Serializer, Deserializer};
 
-        const FORMAT: &'static str = "%Y-%m-%d %H:%M:%S";
+        pub const FORMAT: &'static str = "%Y-%m-%d %H:%M:%S";
 
 
         pub fn serialize<S: Serializer>(maybe_date: &Option<NaiveDateTime>, serializer: S) -> Result<S::Ok, S::Error> {
@@ -143,17 +143,18 @@ pub mod formatters {
         }
 
         pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<Option<NaiveDateTime>, D::Error> {
-            match String::deserialize(deserializer) {
-                Err(_) => Ok(None),
-                Ok(s) => {
+
+            let maybe: Option<String> = Option::deserialize(deserializer)?;
+
+            match maybe {
+                None => Ok(None),
+                Some(s) => {
                     let date_time = NaiveDateTime::parse_from_str(&s, FORMAT)
                         .map_err(serde::de::Error::custom)?;
 
                     Ok(Some(date_time))
                 },
             }
-
-
         }
     }
 }

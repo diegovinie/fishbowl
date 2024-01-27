@@ -1,5 +1,5 @@
 use diesel::prelude::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use salvo::http::form::FormData;
 use chrono::NaiveDateTime;
 use crate::schema::wishlists;
@@ -32,12 +32,14 @@ pub struct Wishlist {
     pub published: bool,
 }
 
-#[derive(Debug, Insertable)]
+#[derive(Debug, Insertable, Deserialize)]
 #[diesel(table_name = wishlists)]
 pub struct NewWishlist {
     pub title: String,
     pub description: Option<String>,
-    // pub date: Option<SystemTime>,
+    // #[serde(default)]
+    #[serde(with = "optional_date")]
+    pub date: Option<NaiveDateTime>,
     pub user_id: i32,
     // pub published: bool,
 }

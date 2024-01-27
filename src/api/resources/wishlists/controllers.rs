@@ -141,6 +141,7 @@ fn cast_form_data_to_new_wishlist(form_data: &FormData, user_id: i32) -> ApiResu
     let new_wishlist = NewWishlist {
         title: validator.string("title")?,
         description: validator.optional_string("description")?,
+        date: validator.optional_date("date")?,
         user_id,
     };
 
