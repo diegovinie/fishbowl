@@ -3,15 +3,16 @@
 mod utils;
 
 use std::sync::{Arc, Mutex};
-use fishbowl;
-use fishbowl::cli::{Command, PopulateTarget, CommandProcessor, ListTarget};
+use fishbowl::{self, Config};
+use fishbowl::cli;
+use cli::{Command, CommandProcessor};
 use utils::{ServiceData, TestDatabaseService, Reporter};
 
 #[test]
 fn populate_products() {
     // setup
 
-    let command = Command::Populate(PopulateTarget::Products);
+    let command = Command::Populate(cli::populate::Target::Products);
 
     let reporter = Arc::new(Mutex::new(Reporter::new()));
 
@@ -21,6 +22,7 @@ fn populate_products() {
 
     let command_processor = CommandProcessor {
         database: Box::new(database),
+        config: Config::default(),
     };
 
     // -- run 1
@@ -32,7 +34,7 @@ fn populate_products() {
         .get_fn_calls("product_repo.insert_many");
 
     // -- assert 1
-    
+
     assert_eq!(calls, 1, "product_repo.insert_many should be called once");
 }
 
@@ -40,7 +42,7 @@ fn populate_products() {
 fn list_users() {
     // -- setup
 
-    let command = Command::List(ListTarget::Users);
+    let command = Command::List(cli::list::Target::Users);
 
     let users = vec![];
 
@@ -52,6 +54,7 @@ fn list_users() {
 
     let command_processor = CommandProcessor {
         database: Box::new(database.clone()),
+        config: Config::default(),
     };
 
     // -- run 1
@@ -71,7 +74,7 @@ fn list_users() {
 fn populate_users() {
     // -- setup
 
-    let command = Command::Populate(PopulateTarget::Users);
+    let command = Command::Populate(cli::populate::Target::Users);
 
     let service_data = ServiceData::default();
 
@@ -81,6 +84,7 @@ fn populate_users() {
 
     let command_processor = CommandProcessor {
         database: Box::new(database.clone()),
+        config: Config::default(),
     };
 
     // -- run 1

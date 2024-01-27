@@ -1,6 +1,8 @@
 use std::{env, process};
 use dotenvy::dotenv;
-use fishbowl::{Config, cli::{Command, process_command}};
+use fishbowl::Config;
+use fishbowl::database::primary_impl::DatabaseServiceImpl;
+use fishbowl::cli::{Command, CommandProcessor};
 
 fn main() {
     dotenv().ok();
@@ -13,6 +15,8 @@ fn main() {
     });
 
     let config = Config::build();
+    let database = Box::new(DatabaseServiceImpl);
+    let command_processor = CommandProcessor::new(database, config);
 
-    process_command(command, config);
+    command_processor.process(command);
 }

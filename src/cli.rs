@@ -1,17 +1,14 @@
-use std::process;
+pub mod populate;
+pub mod list;
 
 use super::{start_server, Config};
-use crate::api::admin::controllers::{parse_products_csv, parse_users_csv};
-use crate::api::resources::users::models::User;
-use crate::api::utils::hash_password;
-use crate::database::primary_impl::DatabaseServiceImpl;
 use crate::database::contracts::DatabaseService;
 use crate::database::primary_service_injector;
 
 pub enum Command {
     Serve,
-    Populate(PopulateTarget),
-    List(ListTarget),
+    Populate(populate::Target),
+    List(list::Target),
     Hash(String),
     Help,
 }
@@ -27,19 +24,13 @@ impl Command {
                 "help" => Ok(Self ::Help),
 
                 "populate" => match args.get(2) {
-                    None => {
-                        print_populate_help();
-                        process::exit(0);
-                    },
-                    Some(target) => Ok(Self::Populate(PopulateTarget::from(target)))
+                    None => Ok(Self::Populate(populate::Target::Help)),
+                    Some(target) => Ok(Self::Populate(populate::Target::from(target)))
                 },
 
                 "list" => match args.get(2) {
-                    None => {
-                        print_list_help();
-                        process::exit(0);
-                    },
-                    Some(target) => Ok(Self::List(ListTarget::from(target)))
+                    None => Ok(Self::List(list::Target::Help)),
+                    Some(target) => Ok(Self::List(list::Target::from(target)))
                 },
 
                 "hash" => match args.get(2) {
@@ -53,39 +44,6 @@ impl Command {
     }
 }
 
-pub enum PopulateTarget {
-    All,
-    Products,
-    Users,
-    Help,
-}
-
-impl From<&String> for PopulateTarget {
-    fn from(value: &String) -> Self {
-        match value.as_str() {
-            "all" => Self::All,
-            "products" => Self::Products,
-            "users" => Self::Users,
-            "help" => Self::Help,
-            other => panic!("Target: `{other}` not found"),
-        }
-    }
-}
-
-pub enum ListTarget {
-    Users,
-    Help,
-}
-
-impl From<&String> for ListTarget {
-    fn from(value: &String) -> Self {
-        match value.as_str() {
-            "users" => Self::Users,
-            "help" => Self::Help,
-            other => panic!("Target: `{other}` not found"),
-        }
-    }
-}
 
 pub struct Error {
     pub message: String,
@@ -93,120 +51,35 @@ pub struct Error {
 
 pub struct CommandProcessor {
     pub database: Box<dyn DatabaseService>,
+    pub config: Config,
 }
 
 impl CommandProcessor {
-    pub fn process(&self, command: Command) {
+    pub fn new(database: Box<dyn DatabaseService>, config: Config) -> Self {
+        Self {
+            database,
+            config,
+        }
+    }
+
+    pub fn  process(&self, command: Command) {
         match command {
-            Command::Serve => todo!(),
-            Command::Populate(target) => match target {
-                PopulateTarget::All => todo!(),
-                PopulateTarget::Products => {
-                    self.populate_products();
-                },
-                PopulateTarget::Users => {
-                    self.populate_users();
-                },
-                PopulateTarget::Help => todo!(),
-            },
-            Command::List(target) => match target {
-                ListTarget::Users => {
-                    self.list_users();
-                },
-                ListTarget::Help => todo!(),
-            },
-            Command::Hash(target) => self.hash(&target),
-            Command::Help => todo!(),
+            Command::Serve => start_server(primary_service_injector(), &self.config),
+            Command::Populate(target) => populate::execute(target, self),
+            Command::List(target) => list::execute(target, self),
+            Command::Hash(target) => misc::hash(&target),
+            Command::Help => print_help(),
         }
-    }
-
-    pub fn populate_products(&self) {
-        let repo = self.database.product_repo();
-
-        match parse_products_csv() {
-            Err(error) => {
-                println!("{error}");
-            },
-
-            Ok(products) => match repo.insert_many(products) {
-                Err(error) => {
-                    println!("{error}");
-                },
-                Ok(total) => {
-                    println!("`Populate products` done. Total affected: {total}");
-                }
-            }
-        }
-    }
-
-    pub fn list_users(&self) {
-        let repo = self.database.user_repo();
-
-        match repo.list() {
-            Err(error) => {
-                println!("{error}");
-            },
-            Ok(users) => {
-                users.iter().for_each(|user| {
-                    let User { id, name, email, role, active, .. } = user;
-
-                    println!("{id:4}  {name:30}  {email:30}  {role:10}  {active:6}");
-                });
-            }
-        }
-    }
-
-    fn populate_users(&self) {
-        let repo = self.database.user_repo();
-
-        match parse_users_csv() {
-            Err(error) => {
-                println!("{error}");
-            },
-
-            Ok(users) => match repo.insert_many(users) {
-                Err(error) => {
-                    println!("{error}");
-                },
-                Ok(total) => {
-                    println!("`Populate users` done. Total affected: {total}");
-                }
-            }
-        }
-    }
-
-    fn hash(&self, text: &str) {
-        let hashed = hash_password(&text);
-
-        print!("{:x?}", hashed);
     }
 }
 
-pub fn process_command(command: Command, config: Config) {
+pub mod misc {
+    use crate::api::utils::hash_password;
 
-    // let service_data = ServiceData::default();
+    pub fn hash(text: &str) {
+        let hashed = hash_password(&text);
 
-    let database = DatabaseServiceImpl;
-
-    let command_processor = CommandProcessor {
-        database: Box::new(database),
-    };
-
-    match command {
-        Command::Serve => start_server(primary_service_injector(), config),
-        // Command::Serve => {
-        //     let services = InjectableServices {
-        //         database: TestDatabaseService,
-        //     };
-
-        //     let service_injector = ServiceInjector::new(services);
-
-        //     start_server(service_injector, config)
-        // },
-        Command::Populate(target) => populate(target, command_processor),
-        Command::List(target) => list(target, command_processor),
-        Command::Help => print_help(),
-        cmd @ Command::Hash(_) => command_processor.process(cmd),
+        print!("{:x?}", hashed);
     }
 }
 
@@ -214,32 +87,6 @@ fn print_help() {
     println!("{}", HELP_MESSAGE);
 }
 
-fn print_populate_help() {
-    println!("{}", POPULATE_HELP_MESSAGE);
-}
-
-fn print_list_help() {
-    println!("{}", LIST_HELP_MESSAGE);
-}
-
-fn populate(target: PopulateTarget, processor: CommandProcessor) {
-    match target {
-        PopulateTarget::All => {
-            processor.process(Command::Populate(PopulateTarget::Users));
-            processor.process(Command::Populate(PopulateTarget::Products));
-        },
-        target @ PopulateTarget::Products => processor.process(Command::Populate(target)),
-        target @ PopulateTarget::Users => processor.process(Command::Populate(target)),
-        PopulateTarget::Help => print_populate_help(),
-    }
-}
-
-fn list(target: ListTarget, command_processor: CommandProcessor) {
-    match target {
-        ListTarget::Users => command_processor.list_users(),
-        ListTarget::Help => print_list_help(),
-    }
-}
 
 const HELP_MESSAGE: &str = r#"
     Commands:
@@ -252,23 +99,4 @@ const HELP_MESSAGE: &str = r#"
 
     help        Show this screen
 
-"#;
-
-const POPULATE_HELP_MESSAGE: &str = r#"
-    Populate command options:
-
-    all         e.g. `cargo run -- populate all`
-
-    users       e.g. `cargo run -- populate users`
-
-    products    e.g. `cargo run -- populate products`
-
-    help        Show this screen
-
-"#;
-
-const LIST_HELP_MESSAGE: &str = r#"
-    List command options:
-
-    help        Show this screen
 "#;

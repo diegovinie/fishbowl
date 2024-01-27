@@ -74,7 +74,7 @@ impl Default for Config {
 }
 
 #[tokio::main]
-pub async fn start_server(service_injector: ServiceInjector, config: Config) {
+pub async fn start_server(service_injector: ServiceInjector, config: &Config) {
     let Config { domain, port, client_url } = config;
 
     let cors_handler = Cors::new()
