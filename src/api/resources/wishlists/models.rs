@@ -1,11 +1,12 @@
 use diesel::prelude::*;
 use serde::Serialize;
 use salvo::http::form::FormData;
+use chrono::NaiveDateTime;
 use crate::schema::wishlists;
 use crate::api::resources::wishes::models::WishProduct;
-use std::time::SystemTime;
 use crate::api::resources::users::models::User;
 use crate::models::{Updatable, Composable};
+use crate::api::utils::formatters::optional_date;
 
 #[derive(
     Serialize,
@@ -25,7 +26,8 @@ pub struct Wishlist {
     pub id: i32,
     pub title: String,
     pub description: Option<String>,
-    pub date: Option<SystemTime>,
+    #[serde(with = "optional_date")]
+    pub date: Option<NaiveDateTime>,
     pub user_id: i32,
     pub published: bool,
 }
@@ -62,7 +64,8 @@ impl Updatable for Wishlist {
 pub struct ListedWishlist {
     pub id: i32,
     pub title: String,
-    pub date: Option<SystemTime>,
+    #[serde(with = "optional_date")]
+    pub date: Option<NaiveDateTime>,
 }
 
 impl From<Wishlist> for ListedWishlist {
@@ -78,7 +81,8 @@ pub struct DetailedWishlist {
     pub id: i32,
     pub title: String,
     pub description: Option<String>,
-    pub date: Option<SystemTime>,
+    #[serde(with = "optional_date")]
+    pub date: Option<NaiveDateTime>,
     pub user_id: i32,
     pub published: bool,
     pub wishes: Vec<WishProduct>,

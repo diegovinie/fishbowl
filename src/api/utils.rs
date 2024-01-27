@@ -121,3 +121,39 @@ pub fn hash_password(pwd: &str) -> Vec<u8> {
 
     Vec::from(&result[..])
 }
+
+pub mod formatters {
+    pub mod optional_date {
+        use chrono::NaiveDateTime;
+        use serde::{self, Deserialize, Serializer, Deserializer};
+
+        const FORMAT: &'static str = "%Y-%m-%d %H:%M:%S";
+
+
+        pub fn serialize<S: Serializer>(maybe_date: &Option<NaiveDateTime>, serializer: S) -> Result<S::Ok, S::Error> {
+            match maybe_date {
+                None => {
+                    serializer.serialize_none()
+                },
+                Some(date) => {
+                    let s = date.format(FORMAT).to_string();
+                    serializer.serialize_str(&s)
+                }
+            }
+        }
+
+        pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<Option<NaiveDateTime>, D::Error> {
+            match String::deserialize(deserializer) {
+                Err(_) => Ok(None),
+                Ok(s) => {
+                    let date_time = NaiveDateTime::parse_from_str(&s, FORMAT)
+                        .map_err(serde::de::Error::custom)?;
+
+                    Ok(Some(date_time))
+                },
+            }
+
+
+        }
+    }
+}
