@@ -1,11 +1,12 @@
 use super::CommandProcessor;
-use crate::api::admin::controllers::{parse_products_csv, parse_users_csv};
+use crate::api::admin::controllers::{parse_products_csv, parse_users_csv, parse_wishlist_csv};
 
 
 pub enum Target {
     All,
     Products,
     Users,
+    Wishlists,
     Help,
 }
 
@@ -15,6 +16,7 @@ impl From<&String> for Target {
             "all" => Self::All,
             "products" => Self::Products,
             "users" => Self::Users,
+            "wishlists" => Self::Wishlists,
             "help" => Self::Help,
             other => panic!("Target: `{other}` not found"),
         }
@@ -26,9 +28,11 @@ pub fn execute(target: Target, processor: &CommandProcessor) {
         Target::All => {
             populate_users(&processor);
             populate_products(&processor);
+            populate_wishlists(&processor);
         },
-        _target @ Target::Products => populate_products(&processor),
-        _target @ Target::Users => populate_users(&processor),
+        Target::Products => populate_products(&processor),
+        Target::Users => populate_users(&processor),
+        Target::Wishlists => populate_wishlists(&processor),
         Target::Help => print_help(),
     }
 }
@@ -72,6 +76,25 @@ fn populate_users(processor: &CommandProcessor) {
     }
 }
 
+fn populate_wishlists(processor: &CommandProcessor) {
+    let repo = processor.database.wishlist_repo();
+
+    match parse_wishlist_csv() {
+        Err(error) => {
+            println!("{error}");
+        },
+
+        Ok(wishlists) => match repo.insert_many(wishlists) {
+            Err(error) => {
+                println!("{error}");
+            },
+            Ok(total) => {
+                println!("`Populate wishlists` done. Total affected: {total}");
+            }
+        }
+    }
+}
+
 pub fn print_help() {
     println!("{}", POPULATE_HELP_MESSAGE);
 }
@@ -84,6 +107,8 @@ const POPULATE_HELP_MESSAGE: &str = r#"
     users       e.g. `cargo run -- populate users`
 
     products    e.g. `cargo run -- populate products`
+
+    wishlists    e.g. `cargo run -- populate wishlists`
 
     help        Show this screen
 

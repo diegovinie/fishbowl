@@ -99,3 +99,68 @@ fn populate_users() {
 
     assert_eq!(calls, 1, "user_repo.insert_many() should be called once");
 }
+
+#[test]
+fn populate_wishlists() {
+    // -- setup
+
+    let command = Command::Populate(cli::populate::Target::Wishlists);
+
+    let service_data = ServiceData::default();
+
+    let reporter = Arc::new(Mutex::new(Reporter::new()));
+
+    let database = TestDatabaseService::with_reporter(service_data.clone(), reporter.clone());
+
+    let command_processor = CommandProcessor {
+        database: Box::new(database.clone()),
+        config: Config::default(),
+    };
+
+    // -- run 1
+
+    command_processor.process(command);
+
+    let calls = reporter.lock()
+        .expect("Locking Reporter failed")
+        .get_fn_calls("wishlist_repo.insert_many");
+
+    // -- assert 1
+
+    assert_eq!(calls, 1, "wishlist_repo.insert_many() should be called once");
+}
+
+#[test]
+fn populate_all() {
+    // -- setup
+
+    let command = Command::Populate(cli::populate::Target::All);
+
+    let service_data = ServiceData::default();
+
+    let reporter = Arc::new(Mutex::new(Reporter::new()));
+
+    let database = TestDatabaseService::with_reporter(service_data.clone(), reporter.clone());
+
+    let command_processor = CommandProcessor {
+        database: Box::new(database.clone()),
+        config: Config::default(),
+    };
+
+    // -- run 1
+
+    command_processor.process(command);
+
+    let locked_reporter = reporter.lock()
+        .expect("Locking Reporter failed");
+
+    let product_calls = locked_reporter.get_fn_calls("product_repo.insert_many");
+    let user_calls = locked_reporter.get_fn_calls("user_repo.insert_many");
+    let wishlist_calls = locked_reporter.get_fn_calls("wishlist_repo.insert_many");
+
+    // -- assert 1
+
+    assert_eq!(product_calls, 1, "product_repo.insert_many() should be called once");
+    assert_eq!(user_calls, 1, "user_repo.insert_many() should be called once");
+    assert_eq!(wishlist_calls, 1, "wishlist_repo.insert_many() should be called once");
+}
