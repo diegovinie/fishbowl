@@ -1,7 +1,7 @@
 pub mod controllers;
 
 use salvo::prelude::*;
-use self::controllers::{populate_products, populate_users, check_admin_role, list_users};
+use self::controllers::{check_admin_role, list_users, populate_products, populate_users, populate_wishlists};
 use crate::api::auth;
 
 pub fn get_router() -> Router {
@@ -12,5 +12,6 @@ pub fn get_router() -> Router {
         .push(Router::with_path("populate")
             .push(Router::with_path("users").post(populate_users))
             .push(Router::with_path("products").post(populate_products))
+            .push(Router::with_path("wishlists").post(populate_wishlists))
         )
 }

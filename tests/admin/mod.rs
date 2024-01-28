@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::{Arc, Mutex}};
 use salvo::{test::{ResponseExt, TestClient}, hyper::StatusCode};
-use fishbowl::api::responses::CollectionResponse;
+use fishbowl::api::responses::{CollectionResponse, ExecutionResponse};
 use fishbowl::api::resources::users::models::User;
-use crate::utils::get_user_and_token;
+use crate::utils::{get_user_and_token, prepare_api_service, Reporter};
 
 use super::utils::{prepare_target, ServiceData,  BASE_URL, get_admin_and_token};
 
@@ -78,4 +78,37 @@ async fn list_users() {
       assert_eq!(status_code, StatusCode::UNAUTHORIZED, "An unknown user get unauthorized");
 
 
+}
+
+#[tokio::test]
+async fn populate_wishlists() {
+    // -- setup
+
+    let service_data = ServiceData::with_wishlists(vec![]);
+    let reporter = Arc::new(Mutex::new(Reporter::new()));
+
+    let target = prepare_api_service(service_data, reporter.clone());
+
+    let (_, auth_token) = get_admin_and_token();
+
+    let bearer = format!("Bearer {auth_token}");
+
+    // -- run 1
+
+    let response = &mut TestClient::post(format!("{BASE_URL}/admin/populate/wishlists"))
+       .add_header("authorization", bearer, true)
+       .send(&target)
+       .await;
+
+    let status_code = response.status_code.unwrap();
+
+    let response_text: ExecutionResponse = response.take_json().await.unwrap();
+
+    let calls = reporter.lock().expect("").get_fn_calls("wishlist_repo.insert_many");
+
+    // -- assert 1
+
+    assert_eq!(status_code, 202, "Status code must me 202");
+    assert_eq!(calls, 1, "wishlist_repo.insert_many() should be called once");
+    assert_eq!(response_text.message, "Total row affected: 10", "total of insertions must match");
 }

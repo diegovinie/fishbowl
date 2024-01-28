@@ -1,6 +1,7 @@
 use super::contracts::{DatabaseService, UserRepo, ProductRepo, SponsorRepo};
 use crate::api::resources::products;
 use crate::api::resources::users;
+use crate::api::resources::wishlists;
 use crate::api::resources::sponsors;
 
 pub struct DatabaseServiceImpl;
@@ -14,6 +15,10 @@ impl DatabaseService for DatabaseServiceImpl {
         Box::new(products::repo::Repo)
     }
 
+    fn wishlist_repo(&self) -> Box<dyn super::contracts::WishlistRepo> {
+        Box::new(wishlists::repo::Repo)
+    }
+    
     fn sponsor_repo(&self) -> Box<dyn SponsorRepo> {
         Box::new(sponsors::repo::Repo)
     }

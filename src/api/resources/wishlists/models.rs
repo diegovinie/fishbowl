@@ -41,7 +41,7 @@ pub struct NewWishlist {
     #[serde(with = "optional_date")]
     pub date: Option<NaiveDateTime>,
     pub user_id: i32,
-    // pub published: bool,
+    pub published: bool,
 }
 
 impl Updatable for Wishlist {

@@ -1,5 +1,6 @@
 use diesel::prelude::*;
 use crate::api::utils::pagination::Paginate;
+use crate::database::{contracts::WishlistRepo, establish_connection};
 use crate::db;
 use crate::schema::wishlists::table as wishlists_table;
 use super::models::DetailedWishlist;
@@ -7,6 +8,18 @@ use super::models::{ListedWishlist, NewWishlist, Wishlist};
 use diesel::result::Error;
 use crate::schema::wishlists as wishlist_schema;
 use crate::models::Composable;
+
+pub struct Repo;
+
+impl WishlistRepo for Repo {
+    fn insert_many(&self, wishlists: Vec<NewWishlist>) -> Result<usize, Error> {
+        let conn = &mut establish_connection();
+        
+        diesel::insert_into(wishlists_table)
+            .values(wishlists)
+            .execute(conn)
+    }
+}
 
 pub fn find_wishlist(id: i32, user_id: i32) -> Result<Wishlist, Error> {
     let conn = &mut db::establish_connection();

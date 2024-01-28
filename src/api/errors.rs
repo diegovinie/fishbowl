@@ -18,8 +18,10 @@ pub enum ApiError {
     FieldNotFound(String),
     #[error("parse-form-data: `{0}`")]
     ParseFormData(#[from] salvo::http::ParseError),
-    #[error("chrono-parse: `{0}")]
+    #[error("chrono-parse: {0}")]
     ChronoParse(#[from] chrono::format::ParseError),
+    #[error("deserialize: {0}")]
+    Deserializer(String),
 }
 
 #[async_trait]
@@ -57,16 +59,14 @@ impl Writer for ApiError {
             ApiError::ChronoParse(error) => {
                 res.status_code(StatusCode::BAD_REQUEST);
                 res.render(json(format!("Error parsing date: {error:?}")));
+            },
+            ApiError::Deserializer(error) => {
+                res.status_code(StatusCode::BAD_REQUEST);
+                res.render(json(format!("{error:?}")));
             }
         }
     }
 }
-
-// impl From<ParseIntError> for ApiError {
-//     fn from(value: ParseIntError) -> Self {
-//         Self::ParseInt(value)
-//     }
-// }
 
 pub type ApiResult<T> = Result<T, ApiError>;
 

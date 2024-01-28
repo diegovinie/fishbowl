@@ -148,6 +148,7 @@ pub mod formatters {
 
             match maybe {
                 None => Ok(None),
+                Some(null) if null == "null" => Ok(None),
                 Some(s) => {
                     let date_time = NaiveDateTime::parse_from_str(&s, FORMAT)
                         .map_err(serde::de::Error::custom)?;
