@@ -1,4 +1,3 @@
-use std::env;
 use std::sync::Arc;
 use salvo::prelude::*;
 use std::error::Error;
@@ -6,7 +5,7 @@ use serde::Deserialize;
 use chrono::NaiveDateTime;
 use crate::api::errors::{ApiResult, ApiError};
 use crate::api::resources::wishlists::models::NewWishlist;
-use crate::api::utils::hash_password;
+use crate::api::utils::{hash_password, parse_csv};
 use crate::api::{errors as api_errors, responses as api_responses, utils};
 use crate::api::resources::users::models::NewUser;
 use crate::api::resources::products::models::NewProduct;
@@ -88,7 +87,7 @@ pub fn list_users(_req: &Request, depot: &Depot, res: &mut Response) -> ApiResul
 pub fn populate_users(depot: &Depot, res: &mut Response) ->ApiResult<()> {
     let repo = get_db(depot)?.user_repo();
 
-    match parse_users_csv() {
+    match parse_csv::<UserBatch, NewUser>(USERS_CSV_FILE) {
         Err(error) => api_errors::render_parse_field_error(res, error, "users.csv"),
 
         Ok(users) => match repo.insert_many(users) {
@@ -129,47 +128,17 @@ pub fn populate_wishlists(depot: &Depot, res: &mut Response) -> ApiResult<()> {
 
     Ok(())
 }
- 
+
 pub fn parse_users_csv() -> Result<Vec<NewUser>, Box<dyn Error>> {
-    let current_dir = env::current_dir()?;
-    let mut rdr = csv::Reader::from_path(current_dir.join(USERS_CSV_FILE))?;
-
-    let mut users: Vec<NewUser> = vec![];
-
-    for result in rdr.deserialize() {
-        let user: UserBatch = result?;
-        users.push(user.into())
-    }
-
-    Ok(users)
+    parse_csv::<UserBatch, NewUser>(USERS_CSV_FILE)
 }
 
 pub fn parse_products_csv() -> Result<Vec<NewProduct>, Box<dyn Error>> {
-    let current_dir = env::current_dir()?;
-    let mut rdr = csv::Reader::from_path(current_dir.join(PRODUCTS_CSV_FILE))?;
-
-    let mut products: Vec<NewProduct> = vec![];
-
-    for result in rdr.deserialize() {
-        let product: ProductBatch = result?;
-        products.push(product.into());
-    }
-
-    Ok(products)
+    parse_csv::<ProductBatch, NewProduct>(PRODUCTS_CSV_FILE)
 }
 
 pub fn parse_wishlist_csv() -> Result<Vec<NewWishlist>, Box<dyn Error>> {
-    let current_dir = env::current_dir()?;
-    let mut rdr = csv::Reader::from_path(current_dir.join(WISHLISTS_CSV_FILE))?;
-
-    let mut wishlists: Vec<NewWishlist> = vec![];
-
-    for result in rdr.deserialize() {
-        let wishlist: WishlistBatch = result?;
-        wishlists.push(wishlist.into());
-    }
-
-    Ok(wishlists)
+    parse_csv::<WishlistBatch, NewWishlist>(WISHLISTS_CSV_FILE)
 }
 
 fn get_db(depot: &Depot) -> ApiResult<&Arc<dyn DatabaseService>> {

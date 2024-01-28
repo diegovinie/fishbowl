@@ -1,4 +1,6 @@
+use std::{env, error::Error};
 use salvo::prelude::*;
+use serde::de::DeserializeOwned;
 use sha2::{Sha256, Digest};
 use crate::models::Role;
 use super::auth::JwtClaims;
@@ -120,6 +122,20 @@ pub fn hash_password(pwd: &str) -> Vec<u8> {
     let result = hasher.finalize();
 
     Vec::from(&result[..])
+}
+
+pub fn parse_csv<F: Into<T> + DeserializeOwned, T>(filename: &str) -> Result<Vec<T>, Box<dyn Error>> {
+    let current_dir = env::current_dir()?;
+    let mut rdr = csv::Reader::from_path(current_dir.join(filename))?;
+
+    let mut users: Vec<T> = vec![];
+
+    for result in rdr.deserialize() {
+        let user: F = result?;
+        users.push(user.into())
+    }
+
+    Ok(users)    
 }
 
 pub mod formatters {

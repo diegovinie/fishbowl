@@ -28,7 +28,7 @@ pub fn execute(target: Target, processor: &CommandProcessor) {
         Target::All => {
             populate_users(&processor);
             populate_products(&processor);
-            populate_wishlists(&processor);
+            populate_wishlists(&processor)
         },
         Target::Products => populate_products(&processor),
         Target::Users => populate_users(&processor),
