@@ -92,7 +92,7 @@ pub async fn start_server(service_injector: ServiceInjector, config: &Config) {
             Router::with_path("files/<**path>")
                 .get(StaticDir::new([env::current_dir().unwrap().join("static")]).auto_list(true)),
         )
-        .push(Router::with_path("api/v1/auth").post(auth::authenticate))
+        .push(Router::with_path("api/v1/auth").post(auth::controllers::authenticate))
         .push(api::get_router());
 
     let service = Service::new(router).catcher(Catcher::default().hoop(cors_handler));

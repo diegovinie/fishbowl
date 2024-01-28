@@ -4,6 +4,7 @@ pub mod repo;
 
 use salvo::prelude::*;
 use crate::api::auth;
+use auth::controllers::handle_auth;
 use self::controllers::{
     list_user_wishlists, 
     list_wishlists,
@@ -15,7 +16,7 @@ use self::controllers::{
 
 pub fn get_router() -> Router {
     Router::with_path("wishlists")
-        .hoop(auth::handle_auth)
+        .hoop(handle_auth)
         .get(list_wishlists)
         .post(create_wishlist)
         .push(Router::with_path("user")
