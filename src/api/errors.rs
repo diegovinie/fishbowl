@@ -1,4 +1,4 @@
-use std::fmt::{Display, Debug};
+use std::{fmt::{Display, Debug}, str::ParseBoolError};
 use salvo::prelude::*;
 use serde::Serialize;
 use thiserror::Error;
@@ -14,6 +14,8 @@ pub enum ApiError {
     ParseInt(ParseIntError, String),
     #[error("parse-float: `{0}`")]
     ParseFloat(ParseFloatError, String),
+    #[error("parse-boolean: `{0}`")]
+    ParseBool(ParseBoolError, String),
     #[error("file-not-found: `{0}`")]
     FieldNotFound(String),
     #[error("parse-form-data: `{0}`")]
@@ -36,6 +38,10 @@ impl Writer for ApiError {
                 res.render(json(format!("Error parsing `{field}` from the form: {error:?}")));
             },
             ApiError::ParseFloat(error, field) => {
+                res.status_code(StatusCode::BAD_REQUEST);
+                res.render(json(format!("Error parsing `{field}` from the form: {error:?}")));
+            },
+            ApiError::ParseBool(error, field) => {
                 res.status_code(StatusCode::BAD_REQUEST);
                 res.render(json(format!("Error parsing `{field}` from the form: {error:?}")));
             },
