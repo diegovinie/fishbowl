@@ -1,17 +1,16 @@
-use std::sync::Arc;
 use salvo::prelude::*;
 use salvo::http::form::FormData;
 use crate::api::errors::{ApiResult, ApiError};
+use crate::api::utils::get_db;
 use crate::api::utils::pagination::Pagination;
 use crate::api::validations::{Validator, FormValidator};
 use crate::api::responses as api_responses;
-use crate::database::contracts::{DatabaseService, ProductRepo};
 use crate::models::Updatable;
 use super::models::NewProduct;
 
 #[handler]
 pub fn list_products(req: &mut Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
-    let repo = get_repo(depot)?;
+    let repo = get_db(depot)?.product_repo();
 
     match req.query::<i64>("per_page") {
         None => {
@@ -34,7 +33,7 @@ pub fn list_products(req: &mut Request, depot: &Depot, res: &mut Response) -> Ap
 
 #[handler]
 pub async fn add_product(req: &mut Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
-    let repo = get_repo(depot)?;
+    let repo = get_db(depot)?.product_repo();
 
     let form_data = req.form_data().await?;
 
@@ -49,7 +48,7 @@ pub async fn add_product(req: &mut Request, depot: &Depot, res: &mut Response) -
 
 #[handler]
 pub fn show_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
-    let repo = get_repo(depot)?;
+    let repo = get_db(depot)?.product_repo();
     
     let id = req.param::<i32>("id").ok_or(ApiError::FieldNotFound("id".to_string()))?;
     
@@ -62,7 +61,7 @@ pub fn show_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiResu
 
 #[handler]
 pub fn remove_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
-    let repo = get_repo(depot).unwrap();
+    let repo = get_db(depot)?.product_repo();
 
     let id = req.param::<i32>("id").ok_or(ApiError::FieldNotFound("id".to_string()))?;
 
@@ -75,7 +74,7 @@ pub fn remove_product(req: &Request, depot: &Depot, res: &mut Response) -> ApiRe
 
 #[handler]
 pub async fn update_product(req: &mut Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
-    let repo = get_repo(depot)?;
+    let repo = get_db(depot)?.product_repo();
 
     let id = req.param::<i32>("id").ok_or(ApiError::FieldNotFound("id".to_string()))?;
 
@@ -103,15 +102,6 @@ fn cast_form_data_to_new_product(form_data: &FormData) -> Result<NewProduct, Api
     let new_product = NewProduct { name, description, url, price, available: false };
 
     Ok(new_product)
-}
-
-fn get_repo(depot: &Depot) -> ApiResult<Box<dyn ProductRepo>> {
-    use crate::api::errors::InjectionError;
-
-    let service = depot.obtain::<Arc<dyn DatabaseService>>()
-        .map_err(|_| ApiError::Injection(InjectionError))?;
-
-    Ok(service.clone().product_repo())
 }
 
 #[cfg(test)]

@@ -39,4 +39,14 @@ impl contracts::UserRepo for TestUserRepo {
         
         Ok(users.len())
     }
+
+    fn insert(&self, new_user: NewUser) -> Result<User, Error> {
+        self.reporter.lock()
+            .expect("Locking Reporter failed")
+            .register_fn_call("user_repo.insert");
+
+        let NewUser { name, email, active, .. } = new_user;
+
+        Ok(User { id: 1, name, email, active, role: "USER".to_string() })
+    }
 }

@@ -1,15 +1,13 @@
-use std::sync::Arc;
 use salvo::prelude::*;
 use std::error::Error;
 use serde::Deserialize;
 use chrono::NaiveDateTime;
 use crate::api::errors::{ApiResult, ApiError};
 use crate::api::resources::wishlists::models::NewWishlist;
-use crate::api::utils::{hash_password, parse_csv};
+use crate::api::utils::{get_db, hash_password, parse_csv};
 use crate::api::{errors as api_errors, responses as api_responses, utils};
 use crate::api::resources::users::models::NewUser;
 use crate::api::resources::products::models::NewProduct;
-use crate::database::contracts::DatabaseService;
 use crate::api::utils::formatters::optional_date;
 
 static USERS_CSV_FILE: &str = "data/users.csv";
@@ -139,13 +137,4 @@ pub fn parse_products_csv() -> Result<Vec<NewProduct>, Box<dyn Error>> {
 
 pub fn parse_wishlist_csv() -> Result<Vec<NewWishlist>, Box<dyn Error>> {
     parse_csv::<WishlistBatch, NewWishlist>(WISHLISTS_CSV_FILE)
-}
-
-fn get_db(depot: &Depot) -> ApiResult<&Arc<dyn DatabaseService>> {
-    use crate::api::errors::InjectionError;
-
-    let service = depot.obtain::<Arc<dyn DatabaseService>>()
-        .map_err(|_| ApiError::Injection(InjectionError))?;
-
-    Ok(service)
 }

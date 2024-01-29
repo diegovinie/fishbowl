@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 use crate::db;
-use crate::database::{contracts::ProductRepo, establish_connection};
+use crate::database::{contracts::ProductRepo,  establish_connection};
 use crate::api::utils::pagination::Paginate;
 use crate::schema::products::table as products_table;
 use super::models::{Product, NewProduct, ListedProduct};

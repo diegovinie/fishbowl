@@ -1,8 +1,9 @@
-use std::{env, error::Error};
+use std::{env, error::Error, sync::Arc};
 use salvo::prelude::*;
 use serde::de::DeserializeOwned;
 use sha2::{Sha256, Digest};
-use crate::models::Role;
+use crate::{api::errors::{ApiResult, ApiError}, models::Role};
+use  crate::database::contracts::DatabaseService;
 use super::auth::JwtClaims;
 
 pub fn get_user_id(depot: &Depot) -> Option<i32> {
@@ -136,6 +137,15 @@ pub fn parse_csv<F: Into<T> + DeserializeOwned, T>(filename: &str) -> Result<Vec
     }
 
     Ok(users)    
+}
+
+pub fn get_db(depot: &Depot) -> ApiResult<&Arc<dyn DatabaseService>> {
+    use crate::api::errors::InjectionError;
+
+    let service = depot.obtain::<Arc<dyn DatabaseService>>()
+        .map_err(|_| ApiError::Injection(InjectionError))?;
+
+    Ok(service)
 }
 
 pub mod formatters {

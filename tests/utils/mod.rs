@@ -140,6 +140,7 @@ pub fn router(service_injector: ServiceInjector) -> Router {
     Router::new()
         .hoop(auth::decode_token())
         .hoop(service_injector)
+        .push(api::auth::get_router())
         .push(api::get_router())
 }
 

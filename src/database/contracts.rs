@@ -15,10 +15,12 @@ pub trait DatabaseService: Send + Sync {
     fn sponsor_repo(&self) -> Box<dyn SponsorRepo>;
 }
 
-pub trait UserRepo {
+pub trait UserRepo: Send + Sync {
     fn list(&self) -> Result<Vec<User>, Error>;
 
     fn find_user(&self, id: i32) -> Result<User, Error>;
+
+    fn insert(&self, new_user: NewUser) -> Result<User, Error>;
 
     fn insert_many(&self, users: Vec<NewUser>) ->Result<usize, Error>;
 }

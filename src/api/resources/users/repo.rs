@@ -31,4 +31,13 @@ impl UserRepo for Repo {
             .values(users)
             .execute(conn)
     }
+
+    fn insert(&self, new_user: NewUser) -> Result<User, Error> {
+        let conn = &mut establish_connection();
+        
+        diesel::insert_into(users_table)
+            .values(&new_user)
+            .returning(User::as_returning())
+            .get_result(conn)
+    }
 }

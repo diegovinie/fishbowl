@@ -8,6 +8,7 @@ use salvo::jwt_auth::{ConstDecoder, QueryFinder, HeaderFinder};
 use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, Duration};
 use crate::models::Role;
+use self::controllers::{authenticate, signup};
 use self::models::User;
 
 const SECRET_KEY: &str = "YOUR SECRET_KEY";
@@ -44,4 +45,10 @@ pub fn create_token(user: User) -> Result<String, jsonwebtoken::errors::Error> {
     let key = EncodingKey::from_secret(SECRET_KEY.as_bytes());
 
     jsonwebtoken::encode(&header, &claims, &key)
+}
+
+pub fn get_router() -> Router {
+    Router::with_path("api/v1/auth")
+        .post(authenticate)
+        .push(Router::with_path("signup").post(signup))
 }

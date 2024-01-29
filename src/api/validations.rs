@@ -1,5 +1,7 @@
 use salvo::http::form::FormData;
 use chrono::NaiveDateTime;
+use crate::api::utils::hash_password;
+
 use super::errors::{ApiResult, ApiError};
 use super::utils::formatters::optional_date::FORMAT;
 
@@ -15,6 +17,8 @@ pub trait Validator {
     fn optional_boolean(&self, key: &str) -> ApiResult<Option<bool>>;
 
     fn optional_date(&self, key: &str) -> ApiResult<Option<NaiveDateTime>>;
+
+    fn password(&self, key: &str) -> ApiResult<Vec<u8>>;
 }
 
 pub struct FormValidator<'a>(pub &'a FormData);
@@ -61,4 +65,10 @@ impl Validator for FormValidator<'_> {
         }
     }
 
+    fn password(&self, key: &str) -> ApiResult<Vec<u8>> {
+        let pwd = self.string(key)?;
+        let hashed = hash_password(&pwd);
+
+        Ok(hashed)
+    }
 }
