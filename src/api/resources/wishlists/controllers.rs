@@ -1,11 +1,13 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
 use crate::api::auth::JwtClaims;
-use crate::api::errors::ApiResult;
+use crate::api::errors::{ApiError, ApiResult};
+use crate::api::resources::wishlists::models::DetailedWishlist;
+use crate::api::utils::get_db;
 use crate::api::utils::pagination::Pagination;
 use crate::api::validations::{FormValidator, Validator};
 use crate::api::{errors as api_errors, responses as api_responses, utils};
-use crate::models::Updatable;
+use crate::models::{Composable, Updatable};
 use super::models::NewWishlist;
 use super::repo;
 
@@ -44,24 +46,30 @@ pub fn list_user_wishlists(_req: &mut Request, depot: &mut Depot, res: &mut Resp
 }
 
 #[handler]
-pub fn show_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    match (req.param::<i32>("id"), utils::get_user_id(depot)) {
-        (None, _) => api_errors::render_resource_not_found(res, "id"),
+pub fn show_wishlist(req: &Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
+    let db = get_db(depot)?;
+    let repo = db.wishlist_repo();
+    let id = req.param::<i32>("id").ok_or(ApiError::FieldNotFound("id".to_string()))?;
 
-        (_, None) => api_errors::render_get_user_id_not_found(res),
+    let wishlist = repo.find_one(id)?;
 
-        (Some(id), Some(user_id)) => match req.query::<String>("detailed") {
-            None => match repo::find_wishlist(id, user_id) {
-                Err(_) => api_errors::render_resource_not_found(res, "wishlist"),
+    match req.query::<String>("detailed") {
+        None => {
+            api_responses::render_resource(res, wishlist);
 
-                Ok(wishlist) => api_responses::render_resource(res, wishlist),
-            },
-            Some(_) => match repo::find_detailed_wishlist(id, user_id) {
-                Err(_) => api_errors::render_resource_not_found(res, "wishlist"),
-
-                Ok(wishlist) => api_responses::render_resource(res, wishlist),
-            },
+            Ok(())
         },
+        Some(_) => {
+            let wish_repo = db.wish_repo();
+
+            let wishes = wish_repo.list_by_wishlist(id)?;
+
+            let detailed_wishlist = DetailedWishlist::compose(wishlist, wishes);
+
+            api_responses::render_resource(res, detailed_wishlist);
+
+            Ok(())
+        }
     }
 }
 

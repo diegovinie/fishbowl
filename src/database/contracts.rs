@@ -2,7 +2,8 @@ use crate::api::errors::ApiResult;
 use crate::api::resources::products::models::{Product, ListedProduct, NewProduct};
 use crate::api::resources::sponsors::models::{NewSponsor, Sponsor};
 use crate::api::resources::users::models::{User, NewUser};
-use crate::api::resources::wishlists::models::NewWishlist;
+use crate::api::resources::wishes::models::WishProduct;
+use crate::api::resources::wishlists::models::{Wishlist, NewWishlist};
 use diesel::result::Error;
 
 pub trait DatabaseService: Send + Sync {
@@ -11,6 +12,8 @@ pub trait DatabaseService: Send + Sync {
     fn product_repo(&self) -> Box<dyn ProductRepo>;
 
     fn wishlist_repo(&self) -> Box<dyn WishlistRepo>;
+
+    fn wish_repo(&self) -> Box<dyn WishRepo>;
 
     fn sponsor_repo(&self) -> Box<dyn SponsorRepo>;
 }
@@ -42,7 +45,13 @@ pub trait ProductRepo: Send + Sync {
 }
 
 pub trait WishlistRepo {
+    fn find_one(&self, id: i32) -> Result<Wishlist, Error>;
+
     fn insert_many(&self, wishlists: Vec<NewWishlist>) -> Result<usize, Error>;
+}
+
+pub trait WishRepo {
+    fn list_by_wishlist(&self, id: i32) -> Result<Vec<WishProduct>, Error>;
 }
 
 pub trait SponsorRepo: Send + Sync {

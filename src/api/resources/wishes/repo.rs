@@ -1,6 +1,8 @@
 use diesel::prelude::*;
 use super::models::{NewWish, Wish, WishProduct};
 use crate::api::resources::products::models::Product;
+use crate::database::contracts::WishRepo;
+use crate::database::establish_connection;
 use crate::db;
 use crate::schema;
 use crate::schema::wishes::table as wishes_table;
@@ -8,6 +10,27 @@ use crate::schema::products::table as products_table;
 use diesel::result::Error;
 use crate::schema::wishes as wishes_schema;
 use crate::models::Composable;
+
+pub struct Repo;
+
+impl WishRepo for Repo {
+    fn list_by_wishlist(&self, id: i32) -> Result<Vec<WishProduct>, Error> {
+        let conn = &mut establish_connection();
+
+        let wish_product_list = wishes_table
+            .inner_join(schema::products::table)
+            .filter(schema::wishes::wishlist_id.eq(id))
+            .select((Wish::as_select(), Product::as_select()))
+            .load::<(Wish, Product)>(conn)?;
+
+        let wishes = wish_product_list
+            .into_iter()
+            .map(|(w, p)| WishProduct::compose(w, p))
+            .collect();
+
+        Ok(wishes)
+    }
+}
 
 pub fn list_wishes_from_wishlist(wishlist_id: i32) -> Result<Vec<Wish>, Error> {
     let conn = &mut db::establish_connection();

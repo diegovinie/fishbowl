@@ -12,9 +12,18 @@ use crate::models::Composable;
 pub struct Repo;
 
 impl WishlistRepo for Repo {
+    fn find_one(&self, id: i32) -> Result<Wishlist, Error> {
+        let conn = &mut establish_connection();
+
+        wishlists_table
+        .find(id)
+        .select(Wishlist::as_select())
+        .first(conn)
+    }
+
     fn insert_many(&self, wishlists: Vec<NewWishlist>) -> Result<usize, Error> {
         let conn = &mut establish_connection();
-        
+
         diesel::insert_into(wishlists_table)
             .values(wishlists)
             .execute(conn)
@@ -62,7 +71,7 @@ pub fn list_wishlists_paginate(page: i64, per_page: i64) -> Result<(i64, Vec<Lis
         match results.first() {
             None => Ok((0, vec![])),
             Some((_, entries)) => Ok((
-                *entries, 
+                *entries,
                 results.into_iter()
                     .map(|(w, _)| ListedWishlist::from(w))
                     .collect())
