@@ -10,6 +10,7 @@ use crate::api::utils::formatters::optional_date;
 
 #[derive(
     Serialize,
+    Deserialize,
     Debug,
     Clone,
     Queryable,

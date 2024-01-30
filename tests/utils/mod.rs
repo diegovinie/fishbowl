@@ -1,9 +1,11 @@
 pub mod test_product_repo;
 pub mod test_user_repo;
 pub mod test_wishlist_repo;
+pub mod test_wish_repo;
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use fishbowl::api::resources::wishes::models::Wish;
 use salvo::prelude::*;
 use fishbowl::api;
 use api::utils::pagination::Paginate;
@@ -16,7 +18,7 @@ use api::resources::users::models::User;
 use api::auth::models::User as AuthUser;
 use test_product_repo::TestProductRepo;
 use test_user_repo::TestUserRepo;
-
+use self::test_wish_repo::TestWishRepo;
 use self::test_wishlist_repo::TestWishlistRepo;
 
 pub static BASE_URL: &str = "http://localhost/api/v1";
@@ -26,6 +28,7 @@ pub struct ServiceData {
     pub products: Vec<Product>,
     pub users: Vec<User>,
     pub wishlists: Vec<Wishlist>,
+    pub wishes: Vec<Wish>,
 }
 
 impl ServiceData {
@@ -46,6 +49,18 @@ impl ServiceData {
 
         Self { wishlists, ..def }
     }
+
+    pub fn products(self, products: Vec<Product>) -> Self {
+        Self { products, ..self }
+    }
+
+    pub fn wishlists(self, wishlists: Vec<Wishlist>) -> Self {
+        Self { wishlists, ..self }
+    }
+
+    pub fn wishes(self, wishes: Vec<Wish>) -> Self {
+        Self { wishes, ..self }
+    }
 }
 
 impl Default for ServiceData {
@@ -54,6 +69,7 @@ impl Default for ServiceData {
             products: vec![],
             users: vec![],
             wishlists: vec![],
+            wishes: vec![],
         }
     }
 }
@@ -115,6 +131,10 @@ impl contracts::DatabaseService for TestDatabaseService {
 
     fn wishlist_repo(&self) -> Box<dyn contracts::WishlistRepo> {
         Box::new(TestWishlistRepo::new(self.data.wishlists.clone(), self.reporter.clone()))
+    }
+
+    fn wish_repo(&self) -> Box<dyn contracts::WishRepo> {
+        Box::new(TestWishRepo::new(self.data.wishes.clone(), self.reporter.clone()))
     }
 }
 
