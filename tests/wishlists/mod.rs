@@ -139,7 +139,7 @@ async fn show_wishlist() {
     let wishlist_calls = locked_reporter.get_fn_calls("wishlist_repo.find_one");
     let wish_calls = locked_reporter.get_fn_calls("wish_repo.list_by_wishlist");
 
-    // drop(locked_reporter);
+    drop(locked_reporter);
 
     // -- assert 1
 
