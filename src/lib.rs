@@ -47,6 +47,7 @@ pub struct Config {
     domain: String,
     port: String,
     client_url: String,
+    options: Vec<(String, String)>,
 }
 
 impl Config {
@@ -54,12 +55,31 @@ impl Config {
         let domain = env::var("DOMAIN").expect("`DOMAIN` must be set");
         let port = env::var("PORT").expect("`PORT` must be set");
         let client_url = env::var("CLIENT_URL").expect("`CLIENT_URL` must be set");
+        let options = Self::get_options();
 
         Self {
             domain,
             port,
             client_url,
+            options,
         }
+    }
+
+    fn get_options() -> Vec<(String, String)> {
+        let args = env::args();
+
+        args.filter(|arg| arg.starts_with("--"))
+            .map(move |arg| arg.split("=")
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>())
+            .filter_map(|s| {
+                match (s.get(0), s.get(1)) {
+                    (None, _) => None,
+                    (_, None) => None,
+                    (Some(key), Some(val)) => Some((String::from(key), String::from(val)))
+                }
+            })
+            .collect()
     }
 }
 
@@ -69,13 +89,14 @@ impl Default for Config {
             domain: String::default(),
             port: String::default(),
             client_url: String::default(),
+            options: vec![],
         }
     }
 }
 
 #[tokio::main]
 pub async fn start_server(service_injector: ServiceInjector, config: &Config) {
-    let Config { domain, port, client_url } = config;
+    let Config { domain, port, client_url, .. } = config;
 
     let cors_handler = Cors::new()
         .allow_origin(vec![client_url.as_str()])
