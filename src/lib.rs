@@ -11,6 +11,7 @@ use home::home_controller;
 use salvo::catcher::Catcher;
 use salvo::cors::Cors;
 use salvo::http::Method;
+use std::collections::HashMap;
 use std::env;
 use database::ServiceInjector;
 
@@ -43,32 +44,43 @@ pub mod models {
     }
 }
 
+struct ConfigParams(pub HashMap<String, String>);
+
+impl ConfigParams {
+    pub fn get(&self, key: &str) -> String {
+        match self.0.get(key) {
+            Some(value) => value.to_owned(),
+            None => env::var(key).expect(&format!("`{}` must be set", key))
+        }
+    }
+}
+
 pub struct Config {
     domain: String,
     port: String,
     client_url: String,
-    options: Vec<(String, String)>,
+    // params: ConfigParams,
 }
 
 impl Config {
     pub fn build() -> Self {
-        let domain = env::var("DOMAIN").expect("`DOMAIN` must be set");
-        let port = env::var("PORT").expect("`PORT` must be set");
-        let client_url = env::var("CLIENT_URL").expect("`CLIENT_URL` must be set");
-        let options = Self::get_options();
+        let params = Self::params();
+        let domain = params.get("DOMAIN");
+        let port = params.get("PORT");
+        let client_url = params.get("CLIENT_URL");
 
         Self {
             domain,
             port,
             client_url,
-            options,
+            // params,
         }
     }
 
-    fn get_options() -> Vec<(String, String)> {
+    fn params() -> ConfigParams {
         let args = env::args();
 
-        args.filter(|arg| arg.starts_with("--"))
+        let params: HashMap<String, String> = args.filter(|arg| arg.starts_with("--"))
             .map(move |arg| arg.split("=")
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>())
@@ -76,10 +88,14 @@ impl Config {
                 match (s.get(0), s.get(1)) {
                     (None, _) => None,
                     (_, None) => None,
-                    (Some(key), Some(val)) => Some((String::from(key), String::from(val)))
+                    (Some(key), Some(val)) => {
+                        Some((key.to_uppercase().replace("--", ""), String::from(val)))
+                    }
                 }
             })
-            .collect()
+            .collect();
+
+        ConfigParams(params)
     }
 }
 
@@ -89,7 +105,7 @@ impl Default for Config {
             domain: String::default(),
             port: String::default(),
             client_url: String::default(),
-            options: vec![],
+            // params: ConfigParams(HashMap::new()),
         }
     }
 }
