@@ -14,14 +14,14 @@ use self::models::User;
 const SECRET_KEY: &str = "YOUR SECRET_KEY";
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct JwtClaims {
+pub struct JwtBearerClaims {
     pub username: String,
     pub role: Role,
     pub id: i32,
     exp: i64,
 }
 
-pub fn decode_token() -> JwtAuth<JwtClaims, ConstDecoder> {
+pub fn decode_bearer_token() -> JwtAuth<JwtBearerClaims, ConstDecoder> {
     JwtAuth::new(ConstDecoder::from_secret(SECRET_KEY.as_bytes()))
         .finders(vec![
             Box::new(HeaderFinder::new()),
@@ -30,11 +30,11 @@ pub fn decode_token() -> JwtAuth<JwtClaims, ConstDecoder> {
         .force_passed(true)
 }
 
-pub fn create_token(user: User) -> Result<String, jsonwebtoken::errors::Error> {
+pub fn create_bearer_token(user: User) -> Result<String, jsonwebtoken::errors::Error> {
     let User { name: username, id, role, .. } = user;
     let exp = OffsetDateTime::now_utc() + Duration::hours(1);
 
-    let claims = JwtClaims {
+    let claims = JwtBearerClaims {
         username,
         id,
         role: Role::from(role.as_str()),

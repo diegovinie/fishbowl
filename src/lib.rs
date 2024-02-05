@@ -123,7 +123,7 @@ pub async fn start_server(service_injector: ServiceInjector, config: &Config) {
     let router = Router::new()
         .hoop(service_injector)
         .hoop(cors_handler.clone())
-        .hoop(auth::decode_token())
+        .hoop(auth::decode_bearer_token())
         .get(home_controller)
         .push(
             Router::with_path("files/<**path>")

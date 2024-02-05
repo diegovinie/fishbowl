@@ -1,9 +1,8 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
-use crate::api::auth::JwtClaims;
 use crate::api::errors::{ApiError, ApiResult};
 use crate::api::resources::wishlists::models::DetailedWishlist;
-use crate::api::utils::get_db;
+use crate::api::utils::{get_db, get_user_id};
 use crate::api::utils::pagination::Pagination;
 use crate::api::validations::{FormValidator, Validator};
 use crate::api::{errors as api_errors, responses as api_responses, utils};
@@ -74,13 +73,12 @@ pub fn show_wishlist(req: &Request, depot: &Depot, res: &mut Response) -> ApiRes
 }
 
 #[handler]
-pub async fn create_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response) {
+pub async fn create_wishlist(req: &mut Request, depot: &Depot, res: &mut Response) {
     match req.form_data().await {
         Err(error) => api_errors::render_form_data_error(res, error),
 
         Ok(form_data) => {
-            let data = depot.jwt_auth_data::<JwtClaims>().unwrap();
-            let user_id = data.claims.id;
+            let user_id = get_user_id(depot).unwrap_or_default();
 
             match cast_form_data_to_new_wishlist(form_data, user_id) {
                 Err(error) => api_errors::render_cast_error(res, error),

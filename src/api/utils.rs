@@ -5,17 +5,17 @@ use sha2::{Sha256, Digest};
 use crate::{api::errors::{ApiResult, ApiError}, models::Role};
 use crate::services::notifications::contracts::Notifier;
 use crate::services::database::contracts::DatabaseService;
-use super::auth::JwtClaims;
+use super::auth::JwtBearerClaims;
 
 pub fn get_user_id(depot: &Depot) -> Option<i32> {
-    match depot.jwt_auth_data::<JwtClaims>() {
+    match depot.jwt_auth_data::<JwtBearerClaims>() {
         None => None,
         Some(data) => Some(data.claims.id),
     }
 }
 
 pub fn admin(depot: &Depot) -> bool {
-    match depot.jwt_auth_data::<JwtClaims>() {
+    match depot.jwt_auth_data::<JwtBearerClaims>() {
         None => false,
         Some(data) => match data.claims.role {
             Role::Admin => true,

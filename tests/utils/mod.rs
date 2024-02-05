@@ -159,7 +159,7 @@ fn get_paginated_page<T: Clone>(items: &Vec<T>, page: i64, per_page: i64) -> &[T
 
 pub fn router(service_injector: ServiceInjector) -> Router {
     Router::new()
-        .hoop(auth::decode_token())
+        .hoop(auth::decode_bearer_token())
         .hoop(service_injector)
         .push(api::auth::get_router())
         .push(api::get_router())
@@ -201,7 +201,7 @@ pub fn get_user_and_token() -> (AuthUser, String) {
         password: vec![],
     };
 
-    let auth_token = auth::create_token(admin.clone()).unwrap();
+    let auth_token = auth::create_bearer_token(admin.clone()).unwrap();
 
     (admin, auth_token)
 }
@@ -216,7 +216,7 @@ pub fn get_admin_and_token() -> (AuthUser, String) {
         password: vec![],
     };
 
-    let auth_token = auth::create_token(admin.clone()).unwrap();
+    let auth_token = auth::create_bearer_token(admin.clone()).unwrap();
 
     (admin, auth_token)
 }
