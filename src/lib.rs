@@ -2,8 +2,7 @@ pub mod schema;
 pub mod api;
 pub mod home;
 pub mod cli;
-pub mod database;
-pub use database as db;
+pub mod services;
 
 use salvo::prelude::*;
 use api::auth;
@@ -13,7 +12,8 @@ use salvo::cors::Cors;
 use salvo::http::Method;
 use std::collections::HashMap;
 use std::env;
-use database::ServiceInjector;
+use services::ServiceInjector;
+pub use services::database as db;
 
 pub mod models {
     use salvo::http::form::FormData;

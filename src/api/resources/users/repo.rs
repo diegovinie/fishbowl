@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 use diesel::{result::Error, SelectableHelper};
-use crate::database::{contracts::UserRepo, establish_connection};
+use crate::services::database::{contracts::UserRepo, establish_connection};
 use crate::schema::users::table as users_table;
 use super::models::{User, NewUser};
 

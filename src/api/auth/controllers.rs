@@ -3,7 +3,7 @@ use salvo::http::form::FormData;
 use crate::api::errors::{self as api_errors, ApiResult};
 use crate::api::responses as api_responses;
 use crate::api::resources::users::models::NewUser;
-use crate::api::utils::get_db;
+use crate::api::utils::{get_db, get_notifier};
 use crate::api::validations::{FormValidator, Validator};
 use super::{repo, create_token};
 use crate::api::responses;
@@ -52,10 +52,19 @@ pub async fn signup(req: &mut Request, depot: &Depot, res: &mut Response) -> Api
 
     let user = repo.insert(new_user)?;
 
+    let notifier = get_notifier(depot)?;
+
+    notifier.send(&user, "finally!".to_string());
+
     api_responses::render_resource_created(res, user);
 
     Ok(())
 }
+
+// c: dispatch message
+
+// verify_user
+// 
 
 fn cast_login_form_data(form_data: &FormData) -> ApiResult<(String, String)> {
     let validator = FormValidator(form_data);

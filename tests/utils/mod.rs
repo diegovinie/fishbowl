@@ -10,8 +10,9 @@ use salvo::prelude::*;
 use fishbowl::api;
 use api::utils::pagination::Paginate;
 use fishbowl::api::auth;
-use fishbowl::database::{ServiceInjector, InjectableServices};
-use fishbowl::database::contracts;
+use fishbowl::services::{ServiceInjector, InjectableServices};
+use fishbowl::services::database::contracts;
+use fishbowl::services::notifications::ConsoleNotifier;
 use api::resources::products::models::Product;
 use api::resources::wishlists::models::Wishlist;
 use api::resources::users::models::User;
@@ -167,6 +168,7 @@ pub fn router(service_injector: ServiceInjector) -> Router {
 pub fn prepare_target(service_data: ServiceData) -> Service {
     let services = InjectableServices {
         database: TestDatabaseService::new(service_data),
+        notifier: ConsoleNotifier,
     };
 
     let service_injector = ServiceInjector::new(services);
@@ -179,6 +181,7 @@ pub fn prepare_target(service_data: ServiceData) -> Service {
 pub fn prepare_api_service(service_data: ServiceData, reporter: Arc<Mutex<Reporter>>) -> Service {
     let services = InjectableServices {
         database: TestDatabaseService::with_reporter(service_data, reporter),
+        notifier: ConsoleNotifier,
     };
 
     let service_injector = ServiceInjector::new(services);

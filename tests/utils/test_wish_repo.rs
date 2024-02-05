@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 use diesel::result::Error;
 use fishbowl::api::resources::wishes::models::{Wish, NewWish, WishProduct};
-use fishbowl::database::contracts;
+use fishbowl::services::database::contracts;
 use super::{MockService, Reporter};
 
 pub struct TestWishRepo {

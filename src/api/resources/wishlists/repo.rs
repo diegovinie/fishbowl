@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 use crate::api::utils::pagination::Paginate;
-use crate::database::{contracts::WishlistRepo, establish_connection};
+use crate::services::database::{contracts::WishlistRepo, establish_connection};
 use crate::db;
 use crate::schema::wishlists::table as wishlists_table;
 use super::models::DetailedWishlist;

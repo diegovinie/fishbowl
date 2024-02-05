@@ -4,7 +4,7 @@ use salvo::{prelude::*, http::form::FormData};
 use crate::api::validations::{Validator, FormValidator};
 use crate::api::{responses as api_responses, utils};
 use crate::api::errors::{ApiResult, ApiError};
-use crate::database::contracts::DatabaseService;
+use crate::services::database::contracts::DatabaseService;
 use super::models::NewSponsor;
 
 

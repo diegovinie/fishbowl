@@ -2,8 +2,9 @@ pub mod populate;
 pub mod list;
 
 use super::{start_server, Config};
-use crate::database::contracts::DatabaseService;
-use crate::database::primary_service_injector;
+use crate::services;
+use services::database::contracts::DatabaseService;
+use services::primary::service_injector;
 
 pub enum Command {
     Serve,
@@ -64,7 +65,7 @@ impl CommandProcessor {
 
     pub fn  process(&self, command: Command) {
         match command {
-            Command::Serve => start_server(primary_service_injector(), &self.config),
+            Command::Serve => start_server(service_injector(), &self.config),
             Command::Populate(target) => populate::execute(target, self),
             Command::List(target) => list::execute(target, self),
             Command::Hash(target) => misc::hash(&target),

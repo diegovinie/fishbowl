@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 use diesel::result::Error;
 use fishbowl::api::resources::products::models::{Product, ListedProduct, NewProduct};
-use fishbowl::database::contracts;
+use fishbowl::services::database::contracts;
 use super::{MockService, get_paginated_page, Reporter};
 
 pub struct TestProductRepo {

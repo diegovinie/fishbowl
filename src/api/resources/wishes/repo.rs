@@ -1,8 +1,8 @@
 use diesel::prelude::*;
 use super::models::{NewWish, Wish, WishProduct};
 use crate::api::resources::products::models::Product;
-use crate::database::contracts::WishRepo;
-use crate::database::establish_connection;
+use crate::services::database::contracts::WishRepo;
+use crate::services::database::establish_connection;
 use crate::db;
 use crate::schema;
 use crate::schema::wishes::table as wishes_table;

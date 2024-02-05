@@ -3,7 +3,8 @@ use salvo::prelude::*;
 use serde::de::DeserializeOwned;
 use sha2::{Sha256, Digest};
 use crate::{api::errors::{ApiResult, ApiError}, models::Role};
-use  crate::database::contracts::DatabaseService;
+use crate::services::notifications::contracts::Notifier;
+use crate::services::database::contracts::DatabaseService;
 use super::auth::JwtClaims;
 
 pub fn get_user_id(depot: &Depot) -> Option<i32> {
@@ -144,6 +145,15 @@ pub fn get_db(depot: &Depot) -> ApiResult<&Arc<dyn DatabaseService>> {
 
     let service = depot.obtain::<Arc<dyn DatabaseService>>()
         .map_err(|_| ApiError::Injection(InjectionError))?;
+
+    Ok(service)
+}
+
+pub fn get_notifier(depot: &Depot) -> ApiResult<&Arc<dyn Notifier>> {
+    use crate::api::errors::InjectionError;
+
+    let service = depot.obtain::<Arc<dyn Notifier>>()
+        .map_err(|_|  ApiError::Injection(InjectionError))?;
 
     Ok(service)
 }

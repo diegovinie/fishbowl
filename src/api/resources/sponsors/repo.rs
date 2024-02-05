@@ -1,4 +1,4 @@
-use crate::{database::contracts::SponsorRepo, api::errors::ApiResult};
+use crate::{services::database::contracts::SponsorRepo, api::errors::ApiResult};
 
 use super::models::{NewSponsor, Sponsor};
 
