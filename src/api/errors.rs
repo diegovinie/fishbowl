@@ -22,6 +22,8 @@ pub enum ApiError {
     ParseFormData(#[from] salvo::http::ParseError),
     #[error("chrono-parse: {0}")]
     ChronoParse(#[from] chrono::format::ParseError),
+    #[error("jwt-parse: {0}")]
+    Jwt(#[from] jsonwebtoken::errors::Error),
     #[error("deserialize: {0}")]
     Deserializer(String),
 }
@@ -66,6 +68,10 @@ impl Writer for ApiError {
                 res.status_code(StatusCode::BAD_REQUEST);
                 res.render(json(format!("Error parsing date: {error:?}")));
             },
+            ApiError::Jwt(error) => {
+                res.status_code(StatusCode::BAD_REQUEST);
+                res.render(json(format!("Error with jwt: {error:?}")));
+            },
             ApiError::Deserializer(error) => {
                 res.status_code(StatusCode::BAD_REQUEST);
                 res.render(json(format!("{error:?}")));
@@ -108,11 +114,11 @@ struct ErrorMessage {
 }
 
 #[derive(Serialize)]
-struct ErrorResponse {
+pub struct ErrorResponse {
     error: ErrorMessage,
 }
 
-fn make_json_response(message: String) -> Json<ErrorResponse> {
+pub fn make_json_response(message: String) -> Json<ErrorResponse> {
     Json(ErrorResponse { error: ErrorMessage { message } })
 }
 

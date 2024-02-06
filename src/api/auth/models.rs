@@ -1,5 +1,5 @@
 use diesel::prelude::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use crate::api::resources::users::models::User as ResourceUser;
 
 #[derive(Debug, Clone, Serialize)]
@@ -21,4 +21,17 @@ impl Into<ResourceUser> for User {
 
         ResourceUser { id, name, email, role, active }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ActivateUserClaims {
+    pub id: i32,
+    pub email: String,
+    pub action: ActivateUserAction,
+    pub exp: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ActivateUserAction {
+    Activate,
 }

@@ -1,22 +1,14 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
-use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, Duration};
 use crate::api::errors::{self as api_errors, ApiResult};
 use crate::api::responses as api_responses;
 use crate::api::resources::users::models::NewUser;
 use crate::api::utils::{get_db, get_notifier};
 use crate::api::validations::{FormValidator, Validator};
+use super::models::{ActivateUserAction, ActivateUserClaims};
 use super::{create_bearer_token, decode_token, encode_token, repo};
 use crate::api::responses;
-
-#[derive(Serialize, Deserialize)]
-struct ActivateUserClaims {
-    id: i32,
-    email: String,
-    action: String,
-    exp: i64,
-}
 
 #[handler]
 pub async fn authenticate(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
@@ -67,8 +59,8 @@ pub async fn signup(req: &mut Request, depot: &Depot, res: &mut Response) -> Api
     let claims = ActivateUserClaims {
         id: user.id,
         email: user.email.clone(),
-        action: "ACTIVATE".to_string(),
-        exp: (OffsetDateTime::now_utc() + Duration::hours(1)).unix_timestamp(),
+        action: ActivateUserAction::Activate,
+        exp: (OffsetDateTime::now_utc() + Duration::minutes(1)).unix_timestamp(),
     };
 
     let token = encode_token(&claims).unwrap();
@@ -84,35 +76,24 @@ pub async fn signup(req: &mut Request, depot: &Depot, res: &mut Response) -> Api
 pub fn activate(req: &Request, res: &mut Response) -> ApiResult<()> {
     match req.query("token") {
         None => {
-
             res.status_code(StatusCode::NO_CONTENT);
             res.render("No changes");
 
             Ok(())
         },
-        Some(token) => match decode_token::<ActivateUserClaims>(token) {
-            Err(error) => {
-                res.status_code(StatusCode::BAD_REQUEST);
-                res.render(format!("Error parsing token: {}", error));
 
-                Ok(())
-            },
-            Ok(data) => {
-                match data.claims.action.as_str() {
-                    "ACTIVATE" => {
-                        println!("activate {} with ide {}", data.claims.email, data.claims.id);
-                        let re = repo::activate(data.claims.id).unwrap();
+        Some(token) => {
+            let data = decode_token::<ActivateUserClaims>(token)?;
 
-                        println!("res is: {:#?}", re);
-                        
-                        Ok(())
-                    }
-                    other => {
-                        println!("action {} not recognized", other);
-                        Ok(())
-                    },
+            match data.claims.action {
+                ActivateUserAction::Activate => {
+                    let total = repo::activate(data.claims.id, &data.claims.email).unwrap();
+
+                    api_responses::render_db_execution(res, total);
+                    
+                    Ok(())
                 }
-            },
+            }
         }
     }
 }
