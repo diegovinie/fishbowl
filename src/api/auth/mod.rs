@@ -2,13 +2,14 @@ pub mod models;
 pub mod controllers;
 mod repo;
 
-use jsonwebtoken::EncodingKey;
+use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Validation};
 use salvo::prelude::*;
 use salvo::jwt_auth::{ConstDecoder, QueryFinder, HeaderFinder};
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, Duration};
 use crate::models::Role;
-use self::controllers::{authenticate, signup};
+use self::controllers::{authenticate, activate, signup};
 use self::models::User;
 
 const SECRET_KEY: &str = "YOUR SECRET_KEY";
@@ -19,6 +20,20 @@ pub struct JwtBearerClaims {
     pub role: Role,
     pub id: i32,
     exp: i64,
+}
+
+pub fn encode_token<T: Serialize>(claims: T) -> Result<String, jsonwebtoken::errors::Error> {
+    let header = jsonwebtoken::Header::default();
+    let key = EncodingKey::from_secret(SECRET_KEY.as_bytes());
+
+    jsonwebtoken::encode(&header, &claims, &key)
+}
+
+pub fn decode_token<C: DeserializeOwned>(token: &str) -> Result<jsonwebtoken::TokenData<C>, jsonwebtoken::errors::Error> {
+    let key = DecodingKey::from_secret(SECRET_KEY.as_bytes());
+    let validation = &Validation::new(Algorithm::HS256);
+
+    jsonwebtoken::decode::<C>(token, &key, &validation)
 }
 
 pub fn decode_bearer_token() -> JwtAuth<JwtBearerClaims, ConstDecoder> {
@@ -51,4 +66,5 @@ pub fn get_router() -> Router {
     Router::with_path("api/v1/auth")
         .post(authenticate)
         .push(Router::with_path("signup").post(signup))
+        .push(Router::with_path("activate").post(activate))
 }

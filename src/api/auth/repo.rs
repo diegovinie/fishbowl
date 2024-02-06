@@ -19,3 +19,11 @@ pub fn validate(email_candidate: &str, password_candidate: &str) -> Option<User>
         }
     }
 }
+
+pub fn activate(user_id: i32) -> Result<usize, diesel::result::Error> {
+    let conn = &mut db::establish_connection();
+
+    diesel::update(users_table.find(user_id))
+        .set(active.eq(true))
+        .execute(conn)
+}
