@@ -5,7 +5,7 @@ use super::{InjectableServices, ServiceInjector};
 pub fn service_injector() -> ServiceInjector {
     let injectable_services = InjectableServices {
         database: MainDatabase,
-        notifier: ConsoleNotifier::default(),
+        notifier: ConsoleNotifier,
     };
 
     ServiceInjector::new(injectable_services)

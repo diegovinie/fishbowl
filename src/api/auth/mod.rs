@@ -30,10 +30,10 @@ pub fn encode_token<T: Serialize>(claims: T) -> Result<String, jsonwebtoken::err
 }
 
 pub fn decode_token<C: DeserializeOwned>(token: &str) -> Result<jsonwebtoken::TokenData<C>, jsonwebtoken::errors::Error> {
-    let key = DecodingKey::from_secret(SECRET_KEY.as_bytes());
+    let key = &DecodingKey::from_secret(SECRET_KEY.as_bytes());
     let validation = &Validation::new(Algorithm::HS256);
 
-    jsonwebtoken::decode::<C>(token, &key, &validation)
+    jsonwebtoken::decode::<C>(token, key, validation)
 }
 
 pub fn decode_bearer_token() -> JwtAuth<JwtBearerClaims, ConstDecoder> {

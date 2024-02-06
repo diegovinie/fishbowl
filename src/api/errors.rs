@@ -146,7 +146,7 @@ pub fn render_parse_field_error(res: &mut Response, error: impl Display, field: 
 
 pub fn render_get_user_id_not_found(res: &mut Response) {
     res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-    res.render(json(format!("Couldn't read `user_id` from depot")));
+    res.render(json("Couldn't read `user_id` from depot".to_string()));
 }
 
 pub fn render_auth_validation_none(res: &mut Response) {
@@ -166,7 +166,7 @@ pub fn render_inconsistency_error(res: &mut Response, value: impl Display) {
 
 pub fn render_unauthorized(res: &mut Response) {
     res.status_code(StatusCode::FORBIDDEN);
-    res.render(json(format!("Not enough privileges")));
+    res.render(json("Not enough privileges".to_string()));
 }
 
 pub fn render_injection_error(res: &mut Response, value: impl Display) {

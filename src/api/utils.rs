@@ -8,19 +8,14 @@ use crate::services::database::contracts::DatabaseService;
 use super::auth::JwtBearerClaims;
 
 pub fn get_user_id(depot: &Depot) -> Option<i32> {
-    match depot.jwt_auth_data::<JwtBearerClaims>() {
-        None => None,
-        Some(data) => Some(data.claims.id),
-    }
+    depot.jwt_auth_data::<JwtBearerClaims>()
+        .map(|data| data.claims.id)
 }
 
 pub fn admin(depot: &Depot) -> bool {
     match depot.jwt_auth_data::<JwtBearerClaims>() {
         None => false,
-        Some(data) => match data.claims.role {
-            Role::Admin => true,
-            _ => false,
-        }
+        Some(data) => matches!(data.claims.role, Role::Admin)
     }
 }
 
@@ -163,7 +158,7 @@ pub mod formatters {
         use chrono::NaiveDateTime;
         use serde::{self, Deserialize, Serializer, Deserializer};
 
-        pub const FORMAT: &'static str = "%Y-%m-%d %H:%M:%S";
+        pub const FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 
 
         pub fn serialize<S: Serializer>(maybe_date: &Option<NaiveDateTime>, serializer: S) -> Result<S::Ok, S::Error> {

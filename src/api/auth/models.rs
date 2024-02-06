@@ -1,6 +1,5 @@
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::api::resources::users::models::User as ResourceUser;
 
 #[derive(Debug, Clone, Serialize)]
 #[derive(Queryable, Selectable, AsChangeset)]
@@ -13,14 +12,6 @@ pub struct User {
     pub role: String,
     pub password: Vec<u8>,
     pub active: bool,
-}
-
-impl Into<ResourceUser> for User {
-    fn into(self) -> ResourceUser {
-        let Self { id, name, email, role, active, .. } = self;
-
-        ResourceUser { id, name, email, role, active }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

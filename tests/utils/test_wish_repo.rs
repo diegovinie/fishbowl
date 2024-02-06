@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 use diesel::result::Error;
-use fishbowl::api::resources::wishes::models::{Wish, NewWish, WishProduct};
+use fishbowl::api::resources::wishes::models::{Wish, WishProduct};
 use fishbowl::services::database::contracts;
 use super::{MockService, Reporter};
 
@@ -20,7 +20,7 @@ impl MockService<Wish> for TestWishRepo {
 }
 
 impl contracts::WishRepo for TestWishRepo {
-    fn list_by_wishlist(&self, id: i32) -> Result<Vec<WishProduct>, Error> {
+    fn list_by_wishlist(&self, _id: i32) -> Result<Vec<WishProduct>, Error> {
         self.reporter.lock()
             .expect("Locking Reporter failed")
             .register_fn_call("wish_repo.list_by_wishlist");

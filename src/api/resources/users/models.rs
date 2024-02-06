@@ -1,6 +1,7 @@
 use diesel::prelude::*;
 use serde::{Serialize, Deserialize};
 use crate::schema;
+use crate::api::auth::models::User as AuthUser;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[derive(Queryable, Identifiable, Selectable, Debug, PartialEq)]
@@ -14,6 +15,14 @@ pub struct User {
     pub active: bool,
 }
 
+impl From<AuthUser> for User {
+    fn from(value: AuthUser) -> Self {
+        let AuthUser { id, name, email, role, active, .. } = value;
+
+        Self { id, name, role, email, active }
+    }
+}
+
 #[derive(Debug)]
 #[derive(Insertable)]
 #[diesel(table_name = schema::users)]
@@ -23,3 +32,4 @@ pub struct NewUser {
     pub password: Vec<u8>,
     pub active: bool,
 }
+    

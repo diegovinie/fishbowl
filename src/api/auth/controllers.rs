@@ -50,7 +50,7 @@ pub async fn signup(req: &mut Request, depot: &Depot, res: &mut Response) -> Api
 
     let form_data = req.form_data().await?;
 
-    let new_user = cast_registry_data(&form_data)?;
+    let new_user = cast_registry_data(form_data)?;
 
     let user = repo.insert(new_user)?;
 
@@ -63,7 +63,7 @@ pub async fn signup(req: &mut Request, depot: &Depot, res: &mut Response) -> Api
         exp: (OffsetDateTime::now_utc() + Duration::minutes(1)).unix_timestamp(),
     };
 
-    let token = encode_token(&claims).unwrap();
+    let token = encode_token(claims).unwrap();
 
     notifier.send(&user, format!("token={token}"));
 

@@ -22,11 +22,11 @@ struct UserBatch {
     active: bool,
 }
 
-impl Into<NewUser> for UserBatch {
-    fn into(self) -> NewUser {
-        let Self { name, email, password, active } = self;
+impl From<UserBatch> for NewUser {
+    fn from(value: UserBatch) -> Self {
+        let UserBatch { name, email, password, active } = value;
 
-        NewUser { name, email, password: hash_password(&password), active }
+        Self { name, email, password: hash_password(&password), active }        
     }
 }
 
@@ -38,9 +38,9 @@ pub struct ProductBatch {
     pub description: Option<String>,
 }
 
-impl Into<NewProduct> for ProductBatch {
-    fn into(self) -> NewProduct {
-        let Self { name, description, url, price } = self;
+impl From<ProductBatch> for NewProduct {
+    fn from(val: ProductBatch) -> Self {
+        let ProductBatch { name, description, url, price } = val;
 
         NewProduct { name, price, url, description, available: true }
     }
@@ -55,9 +55,9 @@ pub struct WishlistBatch {
     published: bool,
 }
 
-impl Into<NewWishlist> for WishlistBatch {
-    fn into(self) -> NewWishlist {
-        let Self { title, description, date, user_id, published } = self;
+impl From<WishlistBatch> for NewWishlist {
+    fn from(val: WishlistBatch) -> Self {
+        let WishlistBatch { title, description, date, user_id, published } = val;
 
         NewWishlist { title, description, date, user_id, published }
     }

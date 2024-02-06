@@ -18,7 +18,7 @@ impl From<&String> for Target {
 
 pub fn execute(target: Target, command_processor: &CommandProcessor) {
     match target {
-        Target::Users => list_users(&command_processor),
+        Target::Users => list_users(command_processor),
         Target::Help => print_list_help(),
     }
 }

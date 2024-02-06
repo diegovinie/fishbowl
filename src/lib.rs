@@ -50,11 +50,12 @@ impl ConfigParams {
     pub fn get(&self, key: &str) -> String {
         match self.0.get(key) {
             Some(value) => value.to_owned(),
-            None => env::var(key).expect(&format!("`{}` must be set", key))
+            None => env::var(key).unwrap_or_else(|_| panic!("{} must be ser", key))
         }
     }
 }
 
+#[derive(Default)]
 pub struct Config {
     domain: String,
     port: String,
@@ -81,11 +82,11 @@ impl Config {
         let args = env::args();
 
         let params: HashMap<String, String> = args.filter(|arg| arg.starts_with("--"))
-            .map(move |arg| arg.split("=")
+            .map(move |arg| arg.split('=')
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>())
             .filter_map(|s| {
-                match (s.get(0), s.get(1)) {
+                match (s.first(), s.get(1)) {
                     (None, _) => None,
                     (_, None) => None,
                     (Some(key), Some(val)) => {
@@ -96,17 +97,6 @@ impl Config {
             .collect();
 
         ConfigParams(params)
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            domain: String::default(),
-            port: String::default(),
-            client_url: String::default(),
-            // params: ConfigParams(HashMap::new()),
-        }
     }
 }
 

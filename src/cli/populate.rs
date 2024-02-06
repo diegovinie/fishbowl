@@ -26,13 +26,13 @@ impl From<&String> for Target {
 pub fn execute(target: Target, processor: &CommandProcessor) {
     match target {
         Target::All => {
-            populate_users(&processor);
-            populate_products(&processor);
-            populate_wishlists(&processor)
+            populate_users(processor);
+            populate_products(processor);
+            populate_wishlists(processor)
         },
-        Target::Products => populate_products(&processor),
-        Target::Users => populate_users(&processor),
-        Target::Wishlists => populate_wishlists(&processor),
+        Target::Products => populate_products(processor),
+        Target::Users => populate_users(processor),
+        Target::Wishlists => populate_wishlists(processor),
         Target::Help => print_help(),
     }
 }

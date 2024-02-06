@@ -78,7 +78,7 @@ pub mod misc {
     use crate::api::utils::hash_password;
 
     pub fn hash(text: &str) {
-        let hashed = hash_password(&text);
+        let hashed = hash_password(text);
 
         print!("{:x?}", hashed);
     }
