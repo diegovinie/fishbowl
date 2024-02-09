@@ -201,7 +201,7 @@ pub fn get_user_and_token() -> (AuthUser, String) {
         password: vec![],
     };
 
-    let auth_token = auth::create_bearer_token(admin.clone()).unwrap();
+    let auth_token = auth::create_bearer_token(&admin).unwrap();
 
     (admin, auth_token)
 }
@@ -216,7 +216,7 @@ pub fn get_admin_and_token() -> (AuthUser, String) {
         password: vec![],
     };
 
-    let auth_token = auth::create_bearer_token(admin.clone()).unwrap();
+    let auth_token = auth::create_bearer_token(&admin).unwrap();
 
     (admin, auth_token)
 }

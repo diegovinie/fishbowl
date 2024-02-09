@@ -21,7 +21,7 @@ pub async fn authenticate(req: &mut Request, _depot: &mut Depot, res: &mut Respo
             Ok((email_candidate, password_candidate)) => match repo::validate(&email_candidate, &password_candidate) {
                 None => api_errors::render_auth_validation_none(res),
 
-                Some(user) => match create_bearer_token(user.clone()) {
+                Some(user) => match create_bearer_token(&user) { 
                     Err(error) => api_errors::render_auth_create_token_error(res, error),
 
                     Ok(token) => responses::render_authentication(res, user.into(), token),

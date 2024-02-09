@@ -110,7 +110,7 @@ mod tests {
     use super::cast_form_data_to_new_product;
     use crate::api::resources::products::models::NewProduct;
 
-    fn create_form_data(fields: &[(&str, String)]) -> FormData {
+    fn create_form_data(fields: &[(&str, &str)]) -> FormData {
         let mut form_data = FormData::new();
 
         for (k, v) in fields {
@@ -128,15 +128,15 @@ mod tests {
         let price = 123000.05;
 
         let form_data = create_form_data(&[
-            ("name", name.clone()),
-            ("price", price.to_string()),
+            ("name", &name),
+            ("price", &price.to_string()),
         ]);
 
         let test_min_product = NewProduct {
             name: name.clone(),
             description: None,
             url: None,
-            price: price.clone(),
+            price,
             available: false
         };
 
@@ -146,10 +146,10 @@ mod tests {
         assert_eq!(new_min_product, test_min_product, "minimal form data casted to new product");
 
         let form_data_2 = create_form_data(&[
-            ("name", name.clone()),
-            ("description", description.clone()),
-            ("url", url.clone()),
-            ("price", price.to_string()),
+            ("name", &name),
+            ("description", &description),
+            ("url", &url),
+            ("price", &price.to_string()),
 
         ]);
 
@@ -172,7 +172,7 @@ mod tests {
     fn test_cast_form_data_to_new_product_fail() {
         let name = format!("A failing product");
 
-        let form_data = create_form_data(&[ ("name", name.clone())]);
+        let form_data = create_form_data(&[ ("name", &name)]);
 
         cast_form_data_to_new_product(&form_data).unwrap();
     }

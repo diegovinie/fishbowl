@@ -45,8 +45,8 @@ pub fn decode_bearer_token() -> JwtAuth<JwtBearerClaims, ConstDecoder> {
         .force_passed(true)
 }
 
-pub fn create_bearer_token(user: User) -> Result<String, jsonwebtoken::errors::Error> {
-    let User { name: username, id, role, .. } = user;
+pub fn create_bearer_token(user: &User) -> Result<String, jsonwebtoken::errors::Error> {
+    let User { name: username, id, role, .. } = user.to_owned();
     let exp = OffsetDateTime::now_utc() + Duration::hours(1);
 
     let claims = JwtBearerClaims {
