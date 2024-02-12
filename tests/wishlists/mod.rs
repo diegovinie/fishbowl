@@ -6,7 +6,7 @@ use fishbowl::api::resources::wishlists::models::Wishlist;
 use salvo::test::{ResponseExt, TestClient};
 use fishbowl::api::resources::wishes::models::Wish;
 use fishbowl::api::responses::ResourceResponse;
-use crate::utils::get_admin_and_token;
+use crate::utils::{get_admin_and_token, get_user_and_token};
 
 use super::utils::{prepare_api_service, ServiceData, BASE_URL, Reporter};
 
@@ -160,4 +160,55 @@ async fn show_wishlist() {
     // -- assert 2
 
     assert_eq!(status_code, 404, "status code should be 404 not found");
+}
+
+#[tokio::test]
+async fn create_wishlist() {
+    // setup
+    
+    let service_data = ServiceData::default();
+
+    let reporter = Arc::new(Mutex::new(Reporter::new()));
+
+    let target = prepare_api_service(service_data, reporter.clone());
+
+    let (user, auth_token) = get_user_and_token();
+
+    let bearer = format!("Bearer {auth_token}");
+
+    let title = "One title";
+    let date = "2024-02-24 17:00:00";
+    
+    // run 1
+
+    let fields = [
+        ("title", title),
+        ("date", date),
+    ];
+
+    let mut response = TestClient::post(format!("{BASE_URL}/wishlists"))
+        .add_header("authorization", &bearer, true)
+        .form(&fields)
+        .send(&target)
+        .await;
+
+    let status_code = response.status_code.unwrap();
+
+    assert_eq!(status_code, 202, "status code should be accepted 202");
+
+    let calls = reporter.lock()
+        .expect("Failed")
+        .get_fn_calls("wishlist_repo.insert");
+
+    assert_eq!(calls, 1, "wishlist_repo.insert() should be called once");
+
+    let wishlist = response.take_json::<ResourceResponse<Wishlist>>()
+        .await
+        .unwrap()
+        .data;
+
+    assert_eq!(wishlist.title, title, "title should be the same");
+    assert_eq!(wishlist.user_id, user.id, "user_id should be authenticated user id");
+
+    drop(reporter);
 }

@@ -21,6 +21,15 @@ impl WishlistRepo for Repo {
         .first(conn)
     }
 
+    fn insert(&self, new_wishlist: NewWishlist) -> Result<Wishlist, Error> {
+        let conn = &mut establish_connection();
+
+        diesel::insert_into(wishlists_table)
+            .values(&new_wishlist)
+            .returning(Wishlist::as_returning())
+            .get_result(conn)        
+    }
+
     fn insert_many(&self, wishlists: Vec<NewWishlist>) -> Result<usize, Error> {
         let conn = &mut establish_connection();
 
@@ -86,15 +95,6 @@ pub fn list_user_wishlists(user_id: i32) -> Result<Vec<ListedWishlist>, Error> {
         .filter(wishlist_schema::user_id.eq(user_id))
         .select(ListedWishlist::as_select())
         .load(conn)
-}
-
-pub fn insert_wishist(new_wishlist: NewWishlist) -> Result<Wishlist, Error> {
-    let conn = &mut db::establish_connection();
-
-    diesel::insert_into(wishlists_table)
-        .values(&new_wishlist)
-        .returning(Wishlist::as_returning())
-        .get_result(conn)
 }
 
 pub fn update_wishist(wishlist: &Wishlist, user_id: i32) -> Result<Wishlist, Error> {

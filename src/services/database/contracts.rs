@@ -44,8 +44,10 @@ pub trait ProductRepo: Send + Sync {
     fn insert_many(&self, products: Vec<NewProduct>) -> Result<usize, Error>;
 }
 
-pub trait WishlistRepo {
+pub trait WishlistRepo: Send + Sync {
     fn find_one(&self, id: i32) -> Result<Wishlist, Error>;
+
+    fn insert(&self, new_wishlist: NewWishlist) -> Result<Wishlist, Error>;
 
     fn insert_many(&self, wishlists: Vec<NewWishlist>) -> Result<usize, Error>;
 }

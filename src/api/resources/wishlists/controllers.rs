@@ -73,26 +73,22 @@ pub fn show_wishlist(req: &Request, depot: &Depot, res: &mut Response) -> ApiRes
 }
 
 #[handler]
-pub async fn create_wishlist(req: &mut Request, depot: &Depot, res: &mut Response) {
-    match req.form_data().await {
-        Err(error) => api_errors::render_form_data_error(res, error),
+pub async fn create_wishlist(req: &mut Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
+    let repo = get_db(depot)?.wishlist_repo();
 
-        Ok(form_data) => {
-            let user_id = get_user_id(depot).unwrap_or_default();
+    let form_data = req.form_data().await?;
 
-            match cast_form_data_to_new_wishlist(form_data, user_id) {
-                Err(error) => api_errors::render_cast_error(res, error),
+    let user_id = get_user_id(depot).unwrap_or_default();
 
-                Ok(new_wishlist) => match repo::insert_wishist(new_wishlist) {
-                    Err(error) => api_errors::render_db_insert_error(res, error, "wishlist"),
+    let new_wishlist = cast_form_data_to_new_wishlist(form_data, user_id)?;
 
-                    Ok(wishlist) => api_responses::render_resource_created(res, wishlist),
-                },
-            }
-        }
-    }
+    let wishlist = repo.insert(new_wishlist)?;
+
+    api_responses::render_resource_created(res, wishlist);
+
+    Ok(())
 }
-
+ 
 #[handler]
 pub async fn update_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     match (req.param::<i32>("id"), utils::get_user_id(depot)) {

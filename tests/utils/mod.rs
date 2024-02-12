@@ -193,7 +193,7 @@ pub fn prepare_api_service(service_data: ServiceData, reporter: Arc<Mutex<Report
 
 pub fn get_user_and_token() -> (AuthUser, String) {
     let admin = AuthUser {
-        id: 1,
+        id: 2,
         name: "Sr user".to_string(),
         email: "user@dummy.test".to_string(),
         role: "USER".to_string(),
