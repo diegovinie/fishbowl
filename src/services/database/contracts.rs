@@ -1,4 +1,3 @@
-use crate::api::errors::ApiResult;
 use crate::api::resources::products::models::{Product, ListedProduct, NewProduct};
 use crate::api::resources::sponsors::models::{NewSponsor, Sponsor};
 use crate::api::resources::users::models::{User, NewUser};
@@ -57,5 +56,5 @@ pub trait WishRepo {
 }
 
 pub trait SponsorRepo: Send + Sync {
-    fn insert(&self, new_sponsor: NewSponsor) -> ApiResult<Sponsor>;
+    fn insert(&self, new_sponsor: NewSponsor) -> Result<Sponsor, Error>;
 }

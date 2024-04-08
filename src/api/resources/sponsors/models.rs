@@ -9,9 +9,10 @@ use crate::schema;
 #[diesel(belongs_to(User))]
 #[diesel(belongs_to(Wish))]
 #[diesel(table_name = schema::sponsors)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Sponsor {
     id: i32,
-    leader: bool,
+    leader: Option<bool>,
     amount: f32,
     user_id: i32,
     wish_id: i32,

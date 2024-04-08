@@ -7,7 +7,7 @@ pub mod utils;
 pub mod validations;
 
 pub fn get_router() -> salvo::Router {
-    use resources::{products, wishlists, wishes};
+    use resources::{products, wishlists, wishes, sponsors};
 
     salvo::Router::with_path("api")
         .path("v1")
@@ -15,4 +15,5 @@ pub fn get_router() -> salvo::Router {
         .push(products::get_router())
         .push(wishlists::get_router())
         .push(wishes::get_router())
+        .push(sponsors::get_router())
 }
