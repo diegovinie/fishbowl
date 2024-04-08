@@ -2,9 +2,11 @@ pub mod test_product_repo;
 pub mod test_user_repo;
 pub mod test_wishlist_repo;
 pub mod test_wish_repo;
+pub mod test_sponsor_repo;
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use fishbowl::api::resources::sponsors::models::Sponsor;
 use fishbowl::api::resources::wishes::models::Wish;
 use salvo::prelude::*;
 use fishbowl::api;
@@ -19,6 +21,7 @@ use api::resources::users::models::User;
 use api::auth::models::User as AuthUser;
 use test_product_repo::TestProductRepo;
 use test_user_repo::TestUserRepo;
+use self::test_sponsor_repo::TestSponsorRepo;
 use self::test_wish_repo::TestWishRepo;
 use self::test_wishlist_repo::TestWishlistRepo;
 
@@ -30,6 +33,7 @@ pub struct ServiceData {
     pub users: Vec<User>,
     pub wishlists: Vec<Wishlist>,
     pub wishes: Vec<Wish>,
+    pub sponsors: Vec<Sponsor>,
 }
 
 impl ServiceData {
@@ -71,6 +75,7 @@ impl Default for ServiceData {
             users: vec![],
             wishlists: vec![],
             wishes: vec![],
+            sponsors: vec![],
         }
     }
 }
@@ -127,7 +132,7 @@ impl contracts::DatabaseService for TestDatabaseService {
     }
 
     fn sponsor_repo(&self) -> Box<dyn contracts::SponsorRepo> {
-        todo!()
+        Box::new(TestSponsorRepo::new(self.data.sponsors.clone(), self.reporter.clone()))
     }
 
     fn wishlist_repo(&self) -> Box<dyn contracts::WishlistRepo> {

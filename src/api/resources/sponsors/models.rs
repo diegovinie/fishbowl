@@ -11,11 +11,11 @@ use crate::schema;
 #[diesel(table_name = schema::sponsors)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Sponsor {
-    id: i32,
-    leader: Option<bool>,
-    amount: f32,
-    user_id: i32,
-    wish_id: i32,
+    pub id: i32,
+    pub leader: Option<bool>,
+    pub amount: f32,
+    pub user_id: i32,
+    pub wish_id: i32,
 }
 
 #[derive(Serialize, Debug, Clone)]
