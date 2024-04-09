@@ -57,4 +57,6 @@ pub trait WishRepo {
 
 pub trait SponsorRepo: Send + Sync {
     fn insert(&self, new_sponsor: NewSponsor) -> Result<Sponsor, Error>;
+
+    fn list_by_wish(&self, wish_id: i32) -> Result<Vec<Sponsor>, Error>;
 }

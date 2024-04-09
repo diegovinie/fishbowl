@@ -14,6 +14,7 @@ pub fn get_router() -> salvo::Router {
         .push(admin::get_router())
         .push(products::get_router())
         .push(wishlists::get_router())
-        .push(wishes::get_router())
+        .push(wishes::get_router_for_wishlists())
+        .push(wishes::get_root_router())
         .push(sponsors::get_router())
 }

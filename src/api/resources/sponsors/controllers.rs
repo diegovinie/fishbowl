@@ -7,6 +7,18 @@ use crate::api::errors::{ApiResult, ApiError};
 use crate::services::database::contracts::DatabaseService;
 use super::models::NewSponsor;
 
+#[handler]
+pub async fn list_sponsors_wish(req: &mut Request, depot: &mut Depot, res: &mut Response) -> ApiResult<()> {
+    let repo = get_db(depot)?.sponsor_repo();
+
+    let wish_id = req.param("wish_id").ok_or(ApiError::FieldNotFound("wish_id".to_string()))?;
+
+    let sponsors = repo.list_by_wish(wish_id)?;
+
+    api_responses::render_collection(res, sponsors);
+    
+    Ok(())
+}
 
 #[handler]
 pub async fn add_sponsor(req: &mut Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {

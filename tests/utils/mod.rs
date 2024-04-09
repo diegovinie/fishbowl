@@ -66,6 +66,10 @@ impl ServiceData {
     pub fn wishes(self, wishes: Vec<Wish>) -> Self {
         Self { wishes, ..self }
     }
+
+    pub fn sponsors(self, sponsors: Vec<Sponsor>) -> Self {
+        Self { sponsors, ..self }
+    }
 }
 
 impl Default for ServiceData {

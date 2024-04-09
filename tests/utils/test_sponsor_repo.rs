@@ -30,5 +30,17 @@ impl contracts::SponsorRepo for TestSponsorRepo {
 
         Ok(Sponsor { id: 1, leader, amount, user_id, wish_id })
     }
+    
+    fn list_by_wish(&self, wish_id: i32) -> Result<Vec<Sponsor>, diesel::result::Error> {
+        self.reporter.lock()
+            .expect("Error locking reporter")
+            .register_fn_call("sponsor_repo.list_by_wish");
+
+        let sponsors = self.data.clone().into_iter()
+            .filter(|s| s.wish_id == wish_id)
+            .collect();
+
+        Ok(sponsors)
+    }
 }
 
