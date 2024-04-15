@@ -212,3 +212,76 @@ async fn create_wishlist() {
 
     drop(reporter);
 }
+
+#[tokio::test]
+async fn add_wish() {
+    // -- setup
+
+    let test_products = test_products();
+
+    let product1 = test_products.get("product1").unwrap();
+
+    let products = vec![
+        product1.clone(),
+    ];
+
+    let test_wishes = test_wishes();
+
+    let wish1 = test_wishes.get("wish1").unwrap();
+    let wish2 = test_wishes.get("wish2").unwrap();
+
+    let wishes = vec![
+        wish1.clone(),
+        wish2.clone(),
+    ];
+
+    let wishlist = Wishlist {
+        id: 1,
+        title: "Wishlist title".to_string(),
+        description: Some("A meaningful description".to_string()),
+        date: None,
+        user_id: 1,
+        published: true,
+    };
+
+    let service_data = ServiceData::default()
+        .products(products)
+        .wishlists(vec![wishlist.clone()])
+        .wishes(wishes);
+
+    let reporter = Arc::new(Mutex::new(Reporter::new()));
+
+    let target = prepare_api_service(service_data, reporter.clone());
+
+    let (_user, auth_token) = get_admin_and_token();
+
+    let bearer = format!("Bearer {auth_token}");
+
+    // - run
+
+    let fields = [
+        ("wishlist_id", "1"),
+        ("product_id", "1"),
+    ];
+
+    let response = TestClient::post(format!("{BASE_URL}/wishlists/1/wishes"))
+        .add_header("authorization", &bearer, true)
+        .form(&fields)
+        .send(&target)
+        .await;
+
+    let status_code = response.status_code.unwrap();
+
+    // -- assert
+
+    let locked_reporter = reporter.lock().unwrap();
+
+    let find_wishlist_calls = locked_reporter.get_fn_calls("wishlist_repo.find_one");
+    let insert_wish_calls = locked_reporter.get_fn_calls("wish_repo.insert");
+
+    drop(locked_reporter);
+
+    assert_eq!(status_code, 202,  "status code should be 202");
+    assert_eq!(find_wishlist_calls, 1, "wishlist_repo.find_one() should be called once");
+    assert_eq!(insert_wish_calls, 1, "wish_repo.insert() should be called once");
+}

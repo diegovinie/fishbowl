@@ -50,7 +50,7 @@ impl ConfigParams {
     pub fn get(&self, key: &str) -> String {
         match self.0.get(key) {
             Some(value) => value.to_owned(),
-            None => env::var(key).unwrap_or_else(|_| panic!("{} must be ser", key))
+            None => env::var(key).unwrap_or_else(|_| panic!("{} must be set", key))
         }
     }
 }

@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 use diesel::result::Error;
-use fishbowl::api::resources::wishes::models::{Wish, WishProduct};
+use fishbowl::api::resources::wishes::models::{Wish, NewWish, WishProduct};
 use fishbowl::services::database::contracts;
 use super::{MockService, Reporter};
 
@@ -26,5 +26,15 @@ impl contracts::WishRepo for TestWishRepo {
             .register_fn_call("wish_repo.list_by_wishlist");
 
         Ok(vec![])
+    }
+    
+    fn insert(&self, new_wish: NewWish) -> Result<Wish, Error> {
+        self.reporter.lock()
+            .expect("Locking Reporter failed")
+            .register_fn_call("wish_repo.insert");
+
+        let NewWish { wishlist_id, product_id } = new_wish;
+
+        Ok(Wish { id: 3, wishlist_id, product_id, pending: true })
     }
 }

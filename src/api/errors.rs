@@ -26,6 +26,8 @@ pub enum ApiError {
     Jwt(#[from] jsonwebtoken::errors::Error),
     #[error("deserialize: {0}")]
     Deserializer(String),
+    #[error("not-allowed: {0}")]
+    NotAllowed(String),
 }
 
 #[async_trait]
@@ -75,7 +77,11 @@ impl Writer for ApiError {
             ApiError::Deserializer(error) => {
                 res.status_code(StatusCode::BAD_REQUEST);
                 res.render(json(format!("{error:?}")));
-            }
+            },
+            ApiError::NotAllowed(error) => {
+                res.status_code(StatusCode::FORBIDDEN);
+                res.render(json(format!("{error:?}")));
+            },
         }
     }
 }

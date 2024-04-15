@@ -1,7 +1,8 @@
 
 use salvo::prelude::*;
 use salvo::http::form::FormData;
-use crate::api::errors::ApiResult;
+use crate::api::errors::{ApiError, ApiResult};
+use crate::api::utils::{get_db, get_user_id};
 use crate::api::validations::{FormValidator, Validator};
 use crate::api::{utils, errors as api_errors, responses as api_responses};
 use super::models::NewWish;
@@ -51,32 +52,26 @@ pub fn show_wish(req: &mut Request, depot: &mut Depot, res: &mut Response) {
 }
 
 #[handler]
-pub async fn create_wish(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    match (req.param::<i32>("wishlist_id"), utils::get_user_id(depot)) {
-        (_, None) => api_errors::render_get_user_id_not_found(res),
+pub async fn create_wish(req: &mut Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
+    let db = get_db(depot)?;
 
-        (None, _) => api_errors::render_resource_not_found(res, "id"),
+    let form_data = req.form_data().await?;
 
-        (Some(w_id), Some(user_id)) => match req.form_data().await {
-            Err(error) => api_errors::render_form_data_error(res, error),
+    let user_id = get_user_id(depot).unwrap_or_default();
 
-            Ok(form_data) => match cast_form_data_to_new_wish(form_data) {
-                Err(error) => api_errors::render_cast_error(res, error),
+    let new_wish = cast_form_data_to_new_wish(form_data)?;
 
-                Ok(new_wish) => match (find_wishlist(w_id, user_id), new_wish.wishlist_id == w_id) {
-                    (Err(_), _) => api_errors::render_db_resource_not_associated(res, "wishlist"),
+    let wishlist = db.wishlist_repo().find_one(new_wish.wishlist_id)?;
 
-                    (_, false) => api_errors::render_inconsistency_error(res, "wishlist_id"),
-
-                    (Ok(_), true) => match repo::insert_wish(new_wish) {
-                        Err(error) => api_errors::render_db_insert_error(res, error, "wish"),
-
-                        Ok(wish) => api_responses::render_resource_created(res, wish)
-                    }
-                }
-            }
-        }
+    if wishlist.user_id != user_id {
+        return Err(ApiError::Deserializer("User doesn't own the wishlist".to_string()));
     }
+
+    let wish = db.wish_repo().insert(new_wish)?;
+
+    api_responses::render_resource_created(res, wish);
+
+    Ok(())
 }
 
 #[handler]
