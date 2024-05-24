@@ -1,5 +1,5 @@
 use diesel::prelude::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use crate::api::resources::wishlists::models::Wishlist;
 use crate::api::resources::products::models::Product;
 use crate::models::Composable;
@@ -25,7 +25,7 @@ pub struct NewWish {
     pub product_id: i32,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct WishProduct {
     pub id: i32,
     pub wishlist_id: i32,

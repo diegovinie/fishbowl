@@ -103,6 +103,10 @@ impl Reporter {
     pub fn get_fn_calls(&self, fn_name: &str) -> u8 {
         *self.fn_calls.get(fn_name).unwrap_or(&0)
     }
+
+    pub fn clear(&mut self) {
+        self.fn_calls.clear();
+    }
 }
 
 #[derive(Clone)]

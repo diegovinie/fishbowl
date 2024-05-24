@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use fishbowl::api::resources::products::models::Product;
 use fishbowl::api::resources::wishlists::models::Wishlist;
 use salvo::test::{ResponseExt, TestClient};
-use fishbowl::api::resources::wishes::models::Wish;
+use fishbowl::api::resources::wishes::models::{Wish, WishProduct};
 use fishbowl::api::responses::ResourceResponse;
 use crate::utils::{get_admin_and_token, get_user_and_token};
 
@@ -284,4 +284,120 @@ async fn add_wish() {
     assert_eq!(status_code, 202,  "status code should be 202");
     assert_eq!(find_wishlist_calls, 1, "wishlist_repo.find_one() should be called once");
     assert_eq!(insert_wish_calls, 1, "wish_repo.insert() should be called once");
+}
+
+#[tokio::test]
+async fn show_wish() {
+    let test_products = test_products();
+
+    let product = test_products.get("product1").unwrap();
+
+    let test_wishes = test_wishes();
+
+    let wish = test_wishes.get("wish1").unwrap();
+
+    let wishlist = Wishlist {
+        id: 1,
+        title: "Wishlist title".to_string(),
+        description: Some("A meaningful description".to_string()),
+        date: None,
+        user_id: 2,
+        published: true,
+    };
+
+    let service_data = ServiceData::default()
+        .products(vec![product.clone()])
+        .wishlists(vec![wishlist.clone()])
+        .wishes(vec![wish.clone()]);
+
+    let reporter = Arc::new(Mutex::new(Reporter::new()));
+
+    let target = prepare_api_service(service_data, reporter.clone());
+
+    let (_user, auth_token) = get_user_and_token();
+
+    let bearer = format!("Bearer {auth_token}");
+
+    // run 1
+
+    let response1 = &mut TestClient::get(format!("{BASE_URL}/wishlists/1/wishes/1"))
+        .add_header("authorization", &bearer, true)
+        .send(&target)
+        .await;
+
+    let status_code = response1.status_code.unwrap();
+
+    assert_eq!(status_code, 200, "status code should be 200");
+
+    // ---
+
+    let wish_product = response1.take_json::<ResourceResponse<WishProduct>>().await.unwrap();
+
+    assert_eq!(wish_product.data.id, wish.id, "Wish id should be the same");
+
+    // ---
+
+    let mut locked_reporter = reporter.lock().unwrap();
+
+    let fn_called = locked_reporter.get_fn_calls("wish_repo.find_one_expanded");
+
+    assert_eq!(fn_called, 1, "wish_repo.find_one_expanded() should be called once");
+
+    locked_reporter.clear();
+
+    drop(locked_reporter);
+
+    // run 2
+
+    let (_, auth_admin_token) = get_admin_and_token();
+
+    let response2 = &mut TestClient::get(format!("{BASE_URL}/wishlists/1/wishes/1?detailed=true"))
+        .add_header("authorization", format!("Bearer {auth_admin_token}"), true)
+        .send(&target)
+        .await;
+
+    let status_code = response2.status_code.unwrap();
+
+    assert_eq!(status_code, 403, "status code should be 403 not allowed");
+
+    // ---
+
+    let mut locked_reporter = reporter.lock().unwrap();
+
+    let fn_called = locked_reporter.get_fn_calls("wish_repo.find_one_expanded");
+
+    assert_eq!(fn_called, 0, "wish_repo.find_one_expanded() shouldn't be called");
+
+    locked_reporter.clear();
+
+    drop(locked_reporter);
+
+    // run 3
+
+    let response3 = &mut TestClient::get(format!("{BASE_URL}/wishlists/1/wishes/1?detailed=true"))
+        .add_header("authorization", &bearer, true)
+        .send(&target)
+        .await;
+
+    let status_code = response3.status_code.unwrap();
+
+    assert_eq!(status_code, 200, "status code should be 200");
+
+    // ---
+
+    let wish_product = response3.take_json::<ResourceResponse<WishProduct>>().await.unwrap();
+
+    assert_eq!(wish_product.data.id, wish.id, "Wish id should be the same");
+
+    // ---
+
+    let mut locked_reporter = reporter.lock().unwrap();
+
+    let fn_called = locked_reporter.get_fn_calls("wish_repo.find_one_expanded");
+
+    assert_eq!(fn_called, 1, "wish_repo.find_one_expanded() should be called once");
+
+    locked_reporter.clear();
+
+    drop(locked_reporter);
 }
