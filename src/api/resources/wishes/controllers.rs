@@ -29,26 +29,30 @@ pub fn list_wishes(req: &mut Request, depot: &mut Depot, res: &mut Response) {
 }
 
 #[handler]
-pub fn show_wish(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    match (utils::get_user_id(depot), req.param::<i32>("wishlist_id")) {
-        (None, _) => api_errors::render_get_user_id_not_found(res),
+pub fn show_wish(req: &Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
+    let db = get_db(depot)?;
 
-        (_, None) => api_errors::render_resource_not_found(res, "associated wishlist"),
+    let detailed = req.query::<bool>("detailed").unwrap_or_default();
 
-        (Some(user_id), Some(wishlist_id)) => match find_wishlist(wishlist_id, user_id) {
-            Err(_) => api_errors::render_db_resource_not_associated(res, "wishlist"),
+    if detailed {
+        let user_id = utils::get_user_id(depot).ok_or(ApiError::NotAllowed("User not found".to_string()))?;
 
-            Ok(_wishlist) => match req.param::<i32>("id") {
-                None => api_errors::render_resource_not_found(res, "wish_id"),
+        let wishlist_id = req.param::<i32>("wishlist_id").ok_or(ApiError::FieldNotFound("wishlist_id".to_string()))?;
 
-                Some(id) => match repo::find_wish(id) {
-                    Err(error) => api_errors::render_db_retrieving_error(res, error, "wish"),
+        let wishlist = db.wishlist_repo().find_one(wishlist_id)?;
 
-                    Ok(wish) => api_responses::render_resource(res, wish)
-                }
-            }
+        if wishlist.user_id != user_id {
+            return Err(ApiError::NotAllowed("User is not allowed".to_string()));
         }
     }
+
+    let id = req.param::<i32>("id").ok_or(ApiError::FieldNotFound("id".to_string()))?;
+
+    let wish = db.wish_repo().find_one_expanded(id)?;
+
+    api_responses::render_resource(res, wish);
+
+    Ok(())
 }
 
 #[handler]

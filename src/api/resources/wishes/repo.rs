@@ -39,6 +39,22 @@ impl WishRepo for Repo {
             .returning(Wish::as_returning())
             .get_result(conn)
     }
+    
+    fn find_one_expanded(&self, id: i32) -> Result<WishProduct, Error> {
+        let conn = &mut establish_connection();
+
+        let wish = wishes_table
+            .find(id)
+            .select(Wish::as_select())
+            .get_result(conn)?;
+
+        let product = products_table
+            .find(wish.product_id)
+            .select(Product::as_select())
+            .get_result(conn)?;
+
+        Ok(WishProduct::compose(wish, product))
+    }
 }
 
 pub fn list_wishes_from_wishlist(wishlist_id: i32) -> Result<Vec<Wish>, Error> {
@@ -48,22 +64,6 @@ pub fn list_wishes_from_wishlist(wishlist_id: i32) -> Result<Vec<Wish>, Error> {
         .filter(wishes_schema::wishlist_id.eq(wishlist_id))
         .select(Wish::as_select())
         .load(conn)
-}
-
-pub fn find_wish(id: i32) -> Result<WishProduct, Error> {
-    let conn = &mut db::establish_connection();
-
-    let wish = wishes_table
-        .find(id)
-        .select(Wish::as_select())
-        .get_result(conn)?;
-
-    let product = products_table
-        .find(wish.product_id)
-        .select(Product::as_select())
-        .get_result(conn)?;
-
-    Ok(WishProduct::compose(wish, product))
 }
 
 pub fn list_detailed_wishes(id: i32) -> Result<Vec<WishProduct>, Error> {
