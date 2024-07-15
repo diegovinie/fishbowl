@@ -79,30 +79,27 @@ pub async fn create_wish(req: &mut Request, depot: &Depot, res: &mut Response) -
 }
 
 #[handler]
-pub fn delete_wish(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    match (req.param::<i32>("wishlist_id"), utils::get_user_id(depot)) {
-        (None, _) => api_errors::render_resource_not_found(res, "associated wishlist"),
+pub fn delete_wish(req: &Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
+    let db = get_db(depot)?;
+    let wish_id = req.param::<i32>("id").ok_or(ApiError::FieldNotFound(format!("wish")))?;
+    let user_id = utils::get_user_id(depot).ok_or(ApiError::NotAllowed("User not found".to_string()))?;
 
-        (_, None) => api_errors::render_get_user_id_not_found(res),
-
-        (Some(wishlist_id), Some(user_id)) => match find_wishlist(wishlist_id, user_id) {
-            Err(_) => api_errors::render_db_resource_not_associated(res, "wishlist"),
-
-            Ok(_) => match req.param::<i32>("id") {
-                None => api_errors::render_resource_not_found(res, "wish"),
-
-                Some(id) => match repo::delete_wish(id) {
-                    Err(error) => api_errors::render_db_delete_error(res, error, "wish"),
-
-                    Ok(total_deleted) => match total_deleted {
-                        0 => api_errors::render_resource_not_found(res, "wish"),
-
-                        _other => api_responses::render_db_execution(res, total_deleted),
-                    }
-                }
-            }
-        }
+    let wish = db.wish_repo().find_one(wish_id)?;
+    let wishlist = db.wishlist_repo().find_one(wish.wishlist_id)?;
+    
+    if wishlist.user_id != user_id {
+        return Err(ApiError::NotAllowed(format!("Not owner")));
     }
+
+    let total_deleted = db.wish_repo().delete(wish_id)?;
+    
+    if total_deleted == 0 {
+        api_errors::render_resource_not_found(res, "wish");
+    } else {
+        api_responses::render_db_execution(res, total_deleted);
+    }
+
+    Ok(())
 }
 
 fn cast_form_data_to_new_wish(form_data: &FormData) -> ApiResult<NewWish> {

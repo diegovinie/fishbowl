@@ -39,6 +39,14 @@ impl WishRepo for Repo {
             .returning(Wish::as_returning())
             .get_result(conn)
     }
+
+    fn find_one(&self, id: i32) -> Result<Wish, Error> {
+        let conn = &mut establish_connection();
+
+        wishes_table.find(id)
+            .select(Wish::as_select())
+            .get_result(conn)
+    }
     
     fn find_one_expanded(&self, id: i32) -> Result<WishProduct, Error> {
         let conn = &mut establish_connection();
@@ -54,6 +62,13 @@ impl WishRepo for Repo {
             .get_result(conn)?;
 
         Ok(WishProduct::compose(wish, product))
+    }
+
+    fn delete(&self, id: i32) -> Result<usize, Error> {
+        let conn = &mut establish_connection();
+        
+        diesel::delete(schema::wishes::table.find(id))
+            .execute(conn)
     }
 }
 
@@ -81,11 +96,4 @@ pub fn list_detailed_wishes(id: i32) -> Result<Vec<WishProduct>, Error> {
         .collect();
 
     Ok(wishes)
-}
-
-pub fn delete_wish(id: i32) -> Result<usize, Error> {
-    let conn = &mut db::establish_connection();
-
-    diesel::delete(schema::wishes::table.find(id))
-        .execute(conn)
 }

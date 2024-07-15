@@ -39,6 +39,16 @@ impl contracts::WishRepo for TestWishRepo {
 
         Ok(Wish { id: 3, wishlist_id, product_id, pending: true })
     }
+
+    fn find_one(&self, id: i32) -> Result<Wish, Error> {
+        self.reporter.lock()
+            .expect("Locking Reporter failed")
+            .register_fn_call("wish_repo.find_one");
+
+        let wish = self.data.iter().find(|w| w.id == id).ok_or(Error::NotFound)?;
+
+        Ok(wish.clone())
+    }
     
     fn find_one_expanded(&self, id: i32) -> Result<WishProduct, Error> {
         self.reporter.lock()
@@ -50,5 +60,13 @@ impl contracts::WishRepo for TestWishRepo {
         let product = Product { id: 1, name: "".to_string(), description: None, url: None, price: 2000.0, available: true };
         let wish_product = WishProduct::compose(wish.clone(), product);
         Ok(wish_product)
+    }
+
+    fn delete(&self, id: i32) -> Result<usize, Error> {
+        self.reporter.lock()
+            .expect("")
+            .register_fn_call("wish_repo.delete");
+
+        Ok(1)
     }
 }

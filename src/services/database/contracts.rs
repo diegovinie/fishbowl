@@ -56,7 +56,11 @@ pub trait WishRepo: Send + Sync {
 
     fn insert(&self, new_wish: NewWish) -> Result<Wish, Error>;
 
+    fn find_one(&self, id: i32) -> Result<Wish, Error>;
+
     fn find_one_expanded(&self, id: i32) -> Result<WishProduct, Error>;
+
+    fn delete(&self, id: i32) -> Result<usize, Error>;
 }
 
 pub trait SponsorRepo: Send + Sync {
