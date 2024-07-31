@@ -1,6 +1,6 @@
 pub mod models;
 pub mod controllers;
-mod repo;
+pub mod repo;
 
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Validation};
 use salvo::prelude::*;

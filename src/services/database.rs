@@ -9,6 +9,7 @@ use crate::api::resources::users;
 use crate::api::resources::wishlists;
 use crate::api::resources::wishes;
 use crate::api::resources::sponsors;
+use crate::api::auth;
 
 pub fn establish_connection() -> PgConnection {
     let database_url = env::var("DATABASE_URL")
@@ -39,5 +40,9 @@ impl DatabaseService for MainDatabase {
 
     fn sponsor_repo(&self) -> Box<dyn SponsorRepo> {
         Box::new(sponsors::repo::Repo)
+    }
+    
+    fn auth_repo(&self) -> Box<dyn contracts::AuthRepo> {
+        Box::new(auth::repo::Repo)
     }
 }

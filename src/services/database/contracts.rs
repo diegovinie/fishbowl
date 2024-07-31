@@ -3,6 +3,7 @@ use crate::api::resources::sponsors::models::{NewSponsor, Sponsor};
 use crate::api::resources::users::models::{User, NewUser};
 use crate::api::resources::wishes::models::{NewWish, Wish, WishProduct};
 use crate::api::resources::wishlists::models::{Wishlist, NewWishlist};
+use crate::api::auth;
 use diesel::result::Error;
 
 pub trait DatabaseService: Send + Sync {
@@ -15,6 +16,8 @@ pub trait DatabaseService: Send + Sync {
     fn wish_repo(&self) -> Box<dyn WishRepo>;
 
     fn sponsor_repo(&self) -> Box<dyn SponsorRepo>;
+
+    fn auth_repo(&self) -> Box<dyn AuthRepo>;
 }
 
 pub trait UserRepo: Send + Sync {
@@ -67,4 +70,10 @@ pub trait SponsorRepo: Send + Sync {
     fn insert(&self, new_sponsor: NewSponsor) -> Result<Sponsor, Error>;
 
     fn list_by_wish(&self, wish_id: i32) -> Result<Vec<Sponsor>, Error>;
+}
+
+pub trait AuthRepo: Send {
+    fn validate(&self, email_candidate: &str, password_candidate: &str) -> Option<auth::models::User>;
+
+    fn activate(&self, user_id: i32, user_email: &str) -> Result<usize, diesel::result::Error>;
 }

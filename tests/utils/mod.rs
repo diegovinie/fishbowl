@@ -3,6 +3,7 @@ pub mod test_user_repo;
 pub mod test_wishlist_repo;
 pub mod test_wish_repo;
 pub mod test_sponsor_repo;
+pub mod test_auth_repo;
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -19,6 +20,7 @@ use api::resources::products::models::Product;
 use api::resources::wishlists::models::Wishlist;
 use api::resources::users::models::User;
 use api::auth::models::User as AuthUser;
+use test_auth_repo::TestAuthRepo;
 use test_product_repo::TestProductRepo;
 use test_user_repo::TestUserRepo;
 use self::test_sponsor_repo::TestSponsorRepo;
@@ -149,6 +151,10 @@ impl contracts::DatabaseService for TestDatabaseService {
 
     fn wish_repo(&self) -> Box<dyn contracts::WishRepo> {
         Box::new(TestWishRepo::new(self.data.wishes.clone(), self.reporter.clone()))
+    }
+
+    fn auth_repo(&self) -> Box<dyn contracts::AuthRepo> {
+        Box::new(TestAuthRepo::new(vec![], self.reporter.clone()))
     }
 }
 

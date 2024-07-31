@@ -62,7 +62,7 @@ impl contracts::WishRepo for TestWishRepo {
         Ok(wish_product)
     }
 
-    fn delete(&self, id: i32) -> Result<usize, Error> {
+    fn delete(&self, _id: i32) -> Result<usize, Error> {
         self.reporter.lock()
             .expect("")
             .register_fn_call("wish_repo.delete");

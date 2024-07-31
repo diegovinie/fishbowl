@@ -1,34 +1,30 @@
 use salvo::prelude::*;
 use salvo::http::form::FormData;
 use time::{OffsetDateTime, Duration};
-use crate::api::errors::{self as api_errors, ApiResult};
+use crate::api::errors::{ApiError, ApiResult};
 use crate::api::responses as api_responses;
 use crate::api::resources::users::models::NewUser;
 use crate::api::utils::{get_db, get_notifier};
 use crate::api::validations::{FormValidator, Validator};
 use super::models::{ActivateUserAction, ActivateUserClaims};
-use super::{create_bearer_token, decode_token, encode_token, repo};
+use super::{create_bearer_token, decode_token, encode_token};
 use crate::api::responses;
 
 #[handler]
-pub async fn authenticate(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
-    match req.form_data().await {
-        Err(error) => api_errors::render_form_data_error(res, error),
+pub async fn authenticate(req: &mut Request, depot: &mut Depot, res: &mut Response) -> ApiResult<()> {
+    let repo = get_db(depot)?.auth_repo();
 
-        Ok(form_data) => match cast_login_form_data(form_data) {
-            Err(error) => api_errors::render_cast_error(res, error),
+    let form_data = req.form_data().await?;
 
-            Ok((email_candidate, password_candidate)) => match repo::validate(&email_candidate, &password_candidate) {
-                None => api_errors::render_auth_validation_none(res),
+    let (email_candidate, password_candidate) = cast_login_form_data(form_data)?;
 
-                Some(user) => match create_bearer_token(&user) { 
-                    Err(error) => api_errors::render_auth_create_token_error(res, error),
+    let user = repo.validate(&email_candidate, &password_candidate).ok_or(ApiError::InvalidCredentials)?;
 
-                    Ok(token) => responses::render_authentication(res, user.into(), token),
-                }
-            },
-        },
-    }
+    let token = create_bearer_token(&user)?;
+
+    responses::render_authentication(res, user.into(), token);
+
+    Ok(())
 }
 
 #[handler]
@@ -73,7 +69,9 @@ pub async fn signup(req: &mut Request, depot: &Depot, res: &mut Response) -> Api
 }
 
 #[handler]
-pub fn activate(req: &Request, res: &mut Response) -> ApiResult<()> {
+pub fn activate(req: &Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
+    let repo = get_db(depot)?.auth_repo();
+
     match req.query("token") {
         None => {
             res.status_code(StatusCode::NO_CONTENT);
@@ -87,7 +85,7 @@ pub fn activate(req: &Request, res: &mut Response) -> ApiResult<()> {
 
             match data.claims.action {
                 ActivateUserAction::Activate => {
-                    let total = repo::activate(data.claims.id, &data.claims.email).unwrap();
+                    let total = repo.activate(data.claims.id, &data.claims.email).unwrap();
 
                     api_responses::render_db_execution(res, total);
                     

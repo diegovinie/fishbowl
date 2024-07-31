@@ -28,6 +28,8 @@ pub enum ApiError {
     Deserializer(String),
     #[error("not-allowed: {0}")]
     NotAllowed(String),
+    #[error("invalid-credentials")]
+    InvalidCredentials,
 }
 
 #[async_trait]
@@ -82,6 +84,10 @@ impl Writer for ApiError {
                 res.status_code(StatusCode::FORBIDDEN);
                 res.render(json(format!("{error:?}")));
             },
+            ApiError::InvalidCredentials => {
+                res.status_code(StatusCode::NOT_ACCEPTABLE);
+                res.render(json("Authentication failed".to_string()));
+            }
         }
     }
 }
