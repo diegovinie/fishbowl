@@ -16,7 +16,7 @@ pub enum ApiError {
     ParseFloat(ParseFloatError, String),
     #[error("parse-boolean: `{0}`")]
     ParseBool(ParseBoolError, String),
-    #[error("file-not-found: `{0}`")]
+    #[error("field-not-found: `{0}`")]
     FieldNotFound(String),
     #[error("parse-form-data: `{0}`")]
     ParseFormData(#[from] salvo::http::ParseError),
@@ -36,8 +36,9 @@ pub enum ApiError {
 impl Writer for ApiError {
     async fn write(mut self, _req: &mut Request, _depot: &mut Depot, res: &mut Response) {
         match self {
-            ApiError::Injection(_details) => {
-                render_injection_error(res, "product_repo");
+            ApiError::Injection(details) => {
+                res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+                res.render(json(format!("Error: {details}")));
             },
             ApiError::ParseInt(error, field) => {
                 res.status_code(StatusCode::BAD_REQUEST);
@@ -61,7 +62,8 @@ impl Writer for ApiError {
             },
             ApiError::Diesel(error) => match error {
                 diesel::result::Error::NotFound => {
-                    render_resource_not_found(res, "any")
+                    res.status_code(StatusCode::NOT_FOUND);
+                    res.render(json(format!("DB: {error}")));
                 },
                 _ => {
                     res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
@@ -82,7 +84,7 @@ impl Writer for ApiError {
             },
             ApiError::NotAllowed(error) => {
                 res.status_code(StatusCode::FORBIDDEN);
-                res.render(json(format!("{error:?}")));
+                res.render(json(error));
             },
             ApiError::InvalidCredentials => {
                 res.status_code(StatusCode::NOT_ACCEPTABLE);
@@ -146,6 +148,7 @@ pub fn render_resource_not_found(res: &mut Response, resource: impl Display) {
     res.render(json(format!("Error `{resource}` not found")));
 }
 
+#[deprecated]
 pub fn render_cast_error(res: &mut Response, error: impl Debug) {
     res.status_code(StatusCode::BAD_REQUEST);
     res.render(json(format!("Error parsing the form data fields: {error:?}")));
@@ -161,16 +164,12 @@ pub fn render_get_user_id_not_found(res: &mut Response) {
     res.render(json("Couldn't read `user_id` from depot".to_string()));
 }
 
-pub fn render_auth_validation_none(res: &mut Response) {
-    res.status_code(StatusCode::NOT_ACCEPTABLE);
-    res.render(json("Authentication failed".to_string()));
-}
-
 pub fn render_auth_create_token_error(res: &mut Response, error: impl Debug) {
     res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
     res.render(json(format!("Error creating token: {error:?}")));
 }
 
+#[deprecated]
 pub fn render_inconsistency_error(res: &mut Response, value: impl Display) {
     res.status_code(StatusCode::BAD_REQUEST);
     res.render(json(format!("Error: `{value}` is not consistent")));
@@ -179,11 +178,6 @@ pub fn render_inconsistency_error(res: &mut Response, value: impl Display) {
 pub fn render_unauthorized(res: &mut Response) {
     res.status_code(StatusCode::FORBIDDEN);
     res.render(json("Not enough privileges".to_string()));
-}
-
-pub fn render_injection_error(res: &mut Response, value: impl Display) {
-    res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-    res.render(json(format!("Error: getting `{value}` from depot")));
 }
 
 pub fn render_db_resource_not_associated(res: &mut Response, resource: impl Display) {

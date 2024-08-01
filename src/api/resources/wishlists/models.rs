@@ -5,7 +5,7 @@ use chrono::NaiveDateTime;
 use crate::schema::wishlists;
 use crate::api::resources::wishes::models::WishProduct;
 use crate::api::resources::users::models::User;
-use crate::models::{Updatable, Composable};
+use crate::models::{Composable, Updatable};
 use crate::api::utils::formatters::optional_date;
 
 #[derive(
@@ -57,7 +57,9 @@ impl Updatable for Wishlist {
             description: form_data.fields.get("description").map(|d| d.to_string()),
             date: self.date,
             user_id: self.user_id,
-            published: self.published,
+            published: form_data.fields.get("published")
+                .map(|s| s.parse().unwrap())
+                .unwrap_or(self.published),
         }
     }
 }

@@ -90,51 +90,53 @@ pub async fn create_wishlist(req: &mut Request, depot: &Depot, res: &mut Respons
 }
  
 #[handler]
-pub async fn update_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    match (req.param::<i32>("id"), utils::get_user_id(depot)) {
-        (None, _) => api_errors::render_resource_not_found(res, "id"),
+pub async fn update_wishlist(req: &mut Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
+    let repo = get_db(depot)?.wishlist_repo();
 
-        (_, None) => api_errors::render_get_user_id_not_found(res),
+    let id = req.param::<i32>("id").ok_or(ApiError::FieldNotFound(format!("id")))?;
 
-        (Some(id), Some(user_id)) => match req.form_data().await {
-            Err(error) => api_errors::render_form_data_error(res, error),
+    let form_data = req.form_data().await?;
 
-            Ok(form_data) => match repo::find_wishlist(id, user_id) {
-                Err(_) => api_errors::render_resource_not_found(res, "wishlist"),
+    let user_id = utils::get_user_id(depot).ok_or(ApiError::FieldNotFound(format!("user_id")))?;
 
-                Ok(wishlist) => {
-                    let updated_wishlist = wishlist.merge(form_data);
+    let wishlist = repo.find_one(id)?;
 
-                    match repo::update_wishist(&updated_wishlist, user_id) {
-                        Err(error) => api_errors::render_db_update_error(res, error, "wishlist"),
-
-                        Ok(updated_wishlist) => {
-                            api_responses::render_resource_updated(res, updated_wishlist)
-                        }
-                    }
-                }
-            },
-        },
+    if wishlist.user_id != user_id {
+        return Err(ApiError::NotAllowed(format!("Wishlist doesn't belong to the user")));
     }
+
+    let updatable_wishlist = wishlist.merge(form_data);
+
+    let updated_wishlist = repo.update(&updatable_wishlist)?;
+
+    api_responses::render_resource_updated(res, updated_wishlist);
+
+    Ok(())
 }
 
 #[handler]
-pub fn delete_wishlist(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    match (req.param::<i32>("id"), utils::get_user_id(depot)) {
-        (None, _) => api_errors::render_resource_not_found(res, "id"),
+pub fn delete_wishlist(req: &Request, depot: &Depot, res: &mut Response) -> ApiResult<()> {
+    let repo = get_db(depot)?.wishlist_repo();
 
-        (_, None) => api_errors::render_get_user_id_not_found(res),
+    let id = req.param::<i32>("id").ok_or(ApiError::FieldNotFound("id".to_string()))?;
 
-        (Some(id), Some(user_id)) => match repo::delete_wishlist(id, user_id) {
-            Err(error) => api_errors::render_db_delete_error(res, error, "wishlist"),
+    let user_id =  utils::get_user_id(depot).ok_or(ApiError::FieldNotFound("user_id".to_string()))?;
 
-            Ok(total_deleted) => match total_deleted {
-                0 => api_errors::render_resource_not_found(res, "wishlist"),
+    let wishlist = repo.find_one(id)?;
 
-                _other => api_responses::render_db_execution(res, total_deleted),
-            },
-        },
+    if wishlist.user_id != user_id {
+        return Err(ApiError::NotAllowed(format!("Wishlist doesn't belong to the user")));
     }
+
+    let total = repo.delete(id)?;
+
+    if total == 0 {
+        return Err(ApiError::FieldNotFound(format!("Nothing was deleted")));
+    }
+
+    api_responses::render_db_execution(res, total);
+
+    Ok(())
 }
 
 fn cast_form_data_to_new_wishlist(form_data: &FormData, user_id: i32) -> ApiResult<NewWishlist> {

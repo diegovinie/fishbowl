@@ -52,4 +52,16 @@ impl contracts::WishlistRepo for TestWishlistRepo {
 
         Ok(wishlists.len())
     }
+        
+    fn update(&self, _wishlist: &Wishlist) -> Result<Wishlist, Error> {
+        todo!()
+    }
+    
+    fn delete(&self, _id: i32) -> Result<usize, Error> {
+        self.reporter.lock()
+            .expect("Locking Reporter failed")
+            .register_fn_call("wishlist_repo.delete");
+
+        Ok(1)
+    }
 }

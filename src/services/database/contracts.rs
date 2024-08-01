@@ -52,6 +52,10 @@ pub trait WishlistRepo: Send + Sync {
     fn insert(&self, new_wishlist: NewWishlist) -> Result<Wishlist, Error>;
 
     fn insert_many(&self, wishlists: Vec<NewWishlist>) -> Result<usize, Error>;
+
+    fn update(&self, wishlist: &Wishlist) -> Result<Wishlist, Error>;
+
+    fn delete(&self, id: i32) -> Result<usize, Error>;
 }
 
 pub trait WishRepo: Send + Sync {
