@@ -1,7 +1,8 @@
 CREATE TABLE wishes (
     id SERIAL PRIMARY KEY,
     pending BOOLEAN NOT NULL DEFAULT TRUE,
-    wishlist_id INTEGER NOT NULL REFERENCES wishlists(id),
+    wishlist_id INTEGER NOT NULL,
+    FOREIGN KEY(wishlist_id) REFERENCES wishlists(id) ON DELETE CASCADE,
     product_id INTEGER NOT NULL REFERENCES products(id)
 );
 
