@@ -5,7 +5,7 @@ use crate::api::utils::get_db;
 use crate::api::utils::pagination::Pagination;
 use crate::api::validations::{Validator, FormValidator};
 use crate::api::responses as api_responses;
-use crate::models::Updatable;
+use crate::models::Mergeable;
 use super::models::NewProduct;
 
 #[handler]
@@ -82,7 +82,7 @@ pub async fn update_product(req: &mut Request, depot: &Depot, res: &mut Response
 
     let product = repo.find_one(id)?;
 
-    let product_updated = product.merge(form_data);
+    let product_updated = product.merge(form_data)?;
 
     let updated_product = repo.update(&product_updated)?;
 

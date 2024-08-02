@@ -1,20 +1,20 @@
 {
-    "rust-analyzer.linkedProjects": [
-        "./Cargo.toml"
-    ],
-    "cSpell.words": [
-        "Bytea",
-        "chrono",
-        "Datelike",
-        "dotenv",
-        "dotenvy",
-        "hasher",
-        "Insertable",
-        "jsonwebtoken",
-        "plpgsql",
-        "reborrow",
-        "regclass",
-        "thiserror",
-        "wishist"
-    ]
+  "editor.tabSize": 4,
+  "rust-analyzer.linkedProjects": ["./Cargo.toml"],
+  "cSpell.words": [
+    "Bytea",
+    "chrono",
+    "Datelike",
+    "dotenv",
+    "dotenvy",
+    "hasher",
+    "Insertable",
+    "jsonwebtoken",
+    "Mergeable",
+    "plpgsql",
+    "reborrow",
+    "regclass",
+    "thiserror",
+    "wishist"
+  ]
 }

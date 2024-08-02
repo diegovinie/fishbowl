@@ -18,9 +18,10 @@ pub use services::database as db;
 pub mod models {
     use salvo::http::form::FormData;
     use serde::{Deserialize, Serialize};
+    use crate::api::errors::ApiResult;
 
-    pub trait Updatable {
-        fn merge(self, form_data: &FormData) -> Self;
+    pub trait Mergeable {
+        fn merge(self, form_data: &FormData) -> ApiResult<Self> where Self: Sized;
     }
 
     pub trait Composable<T, G> {

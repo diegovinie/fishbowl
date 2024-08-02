@@ -30,6 +30,8 @@ pub enum ApiError {
     NotAllowed(String),
     #[error("invalid-credentials")]
     InvalidCredentials,
+    #[error("bad-request-error: {0}")]
+    BadRequestError(String),
 }
 
 #[async_trait]
@@ -89,6 +91,10 @@ impl Writer for ApiError {
             ApiError::InvalidCredentials => {
                 res.status_code(StatusCode::NOT_ACCEPTABLE);
                 res.render(json("Authentication failed".to_string()));
+            }
+            ApiError::BadRequestError(reason) => {
+                res.status_code(StatusCode::BAD_REQUEST);
+                res.render(json(format!("{reason}")));
             }
         }
     }

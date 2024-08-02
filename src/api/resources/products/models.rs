@@ -1,8 +1,10 @@
 use diesel::prelude::*;
 use serde::{Serialize, Deserialize};
 use salvo::http::form::FormData;
+use crate::api::errors::{ApiError, ApiResult};
+use crate::api::validations::{FormValidator, Validator};
 use crate::schema::products;
-use crate::models::Updatable;
+use crate::models::Mergeable;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 #[derive(Queryable, Selectable, AsChangeset)]
@@ -28,28 +30,36 @@ pub struct NewProduct {
     pub price: f32,
 }
 
-impl Updatable for Product {
-    fn merge(self, form_data: &FormData) -> Self {
-        Self {
-            id: self.id,
-            name: form_data.fields.get("name")
-                .unwrap_or(&self.name)
-                .to_string(),
-            description: match form_data.fields.get("description") {
-                None => self.description,
-                Some(value) => Some(value.clone()),
-            },
-            url: match form_data.fields.get("url") {
-                None => self.url,
-                Some(value) => Some(value.clone()),
-            },
-            price: form_data.fields.get("price")
-                .unwrap_or(&"".to_string())
-                .to_owned()
-                .parse()
-                .unwrap_or(self.price),
-            available: self.available,
+impl Mergeable for Product {
+    fn merge(self, form_data: &FormData) -> ApiResult<Self> {
+        let validator = FormValidator(form_data);
+        let mut updatable = self.clone();
+
+        if let Some(name) = validator.get("name") {
+            if name.is_empty() {
+                return Err(ApiError::BadRequestError(format!("`name` cannot be empty")));
+            }
+
+            updatable.name = name.to_string();
         }
+
+        if let Some(_) = validator.get("description") {
+            updatable.description = validator.optional_string("description")?;
+        }
+
+        if let Some(_) = validator.get("url") {
+            updatable.url = validator.optional_string("url")?;
+        }
+
+        if let Some(_) = validator.get("available") {
+            updatable.available = validator.boolean("available")?;
+        }
+
+        if let Some(_) = validator.get("price") {
+            updatable.price = validator.float("price")?;
+        }
+
+        Ok(updatable)
     }
 }
 

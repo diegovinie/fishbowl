@@ -61,6 +61,12 @@ pub trait Validator {
 
 pub struct FormValidator<'a>(pub &'a FormData);
 
+impl FormValidator<'_> {
+    pub fn get(&self, key: &str) -> Option<&String> {
+        self.0.fields.get(key)
+    }
+}
+
 impl Validator for FormValidator<'_> {
     fn string(&self, key: &str) -> ApiResult<String> {
         self.0.fields.get(key)

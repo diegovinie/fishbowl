@@ -6,7 +6,7 @@ use crate::api::utils::{get_db, get_user_id};
 use crate::api::utils::pagination::Pagination;
 use crate::api::validations::{FormValidator, Validator};
 use crate::api::{errors as api_errors, responses as api_responses, utils};
-use crate::models::{Composable, Updatable};
+use crate::models::{Composable, Mergeable};
 use super::models::NewWishlist;
 use super::repo;
 
@@ -105,7 +105,7 @@ pub async fn update_wishlist(req: &mut Request, depot: &Depot, res: &mut Respons
         return Err(ApiError::NotAllowed(format!("Wishlist doesn't belong to the user")));
     }
 
-    let updatable_wishlist = wishlist.merge(form_data);
+    let updatable_wishlist = wishlist.merge(form_data)?;
 
     let updated_wishlist = repo.update(&updatable_wishlist)?;
 
