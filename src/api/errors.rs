@@ -67,9 +67,9 @@ impl Writer for ApiError {
                     res.status_code(StatusCode::NOT_FOUND);
                     res.render(json(format!("DB: {error}")));
                 },
-                _ => {
+                other => {
                     res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-                    res.render(json("undefined error".to_string()));
+                    res.render(json(format!("DB: {other}")));
                 }
             },
             ApiError::ChronoParse(error) => {

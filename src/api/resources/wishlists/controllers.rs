@@ -124,7 +124,7 @@ pub fn delete_wishlist(req: &Request, depot: &Depot, res: &mut Response) -> ApiR
 
     let wishlist = repo.find_one(id)?;
 
-    if wishlist.user_id != user_id {
+    if wishlist.user_id != user_id && !utils::admin(depot) {
         return Err(ApiError::NotAllowed(format!("Wishlist doesn't belong to the user")));
     }
 
