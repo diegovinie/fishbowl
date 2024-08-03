@@ -156,6 +156,10 @@ impl contracts::DatabaseService for TestDatabaseService {
     fn auth_repo(&self) -> Box<dyn contracts::AuthRepo> {
         Box::new(TestAuthRepo::new(vec![], self.reporter.clone()))
     }
+    
+    fn follower_repo(&self) -> Box<dyn contracts::FollowerRepo> {
+        todo!()
+    }
 }
 
 
