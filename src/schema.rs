@@ -1,6 +1,15 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    followers (id) {
+        id -> Int4,
+        wishlist_id -> Int4,
+        user_id -> Int4,
+        active -> Bool,
+    }
+}
+
+diesel::table! {
     products (id) {
         id -> Int4,
         name -> Varchar,
@@ -52,6 +61,8 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(followers -> users (user_id));
+diesel::joinable!(followers -> wishlists (wishlist_id));
 diesel::joinable!(sponsors -> users (user_id));
 diesel::joinable!(sponsors -> wishes (wish_id));
 diesel::joinable!(wishes -> products (product_id));
@@ -59,6 +70,7 @@ diesel::joinable!(wishes -> wishlists (wishlist_id));
 diesel::joinable!(wishlists -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    followers,
     products,
     sponsors,
     users,

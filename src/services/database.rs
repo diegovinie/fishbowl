@@ -9,6 +9,7 @@ use crate::api::resources::users;
 use crate::api::resources::wishlists;
 use crate::api::resources::wishes;
 use crate::api::resources::sponsors;
+use crate::api::resources::followers;
 use crate::api::auth;
 
 pub fn establish_connection() -> PgConnection {
@@ -44,5 +45,9 @@ impl DatabaseService for MainDatabase {
     
     fn auth_repo(&self) -> Box<dyn contracts::AuthRepo> {
         Box::new(auth::repo::Repo)
+    }
+
+    fn follower_repo(&self) -> Box<dyn contracts::FollowerRepo> {
+        Box::new(followers::repo::Repo)
     }
 }

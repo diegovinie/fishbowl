@@ -1,3 +1,4 @@
+use crate::api::resources::followers::models::{Follower, NewFollower};
 use crate::api::resources::products::models::{Product, ListedProduct, NewProduct};
 use crate::api::resources::sponsors::models::{NewSponsor, Sponsor};
 use crate::api::resources::users::models::{User, NewUser};
@@ -18,6 +19,8 @@ pub trait DatabaseService: Send + Sync {
     fn sponsor_repo(&self) -> Box<dyn SponsorRepo>;
 
     fn auth_repo(&self) -> Box<dyn AuthRepo>;
+
+    fn follower_repo(&self) -> Box<dyn FollowerRepo>;
 }
 
 pub trait UserRepo: Send + Sync {
@@ -80,4 +83,12 @@ pub trait AuthRepo: Send {
     fn validate(&self, email_candidate: &str, password_candidate: &str) -> Option<auth::models::User>;
 
     fn activate(&self, user_id: i32, user_email: &str) -> Result<usize, diesel::result::Error>;
+}
+
+pub trait FollowerRepo: Send + Sync {
+    fn insert(&self, new_follower: NewFollower) -> Result<Follower, Error>;
+
+    fn update(&self, follower: &Follower) -> Result<Follower, Error>;
+
+    fn delete(&self, id: i32) -> Result<usize, Error>;
 }
